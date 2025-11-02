@@ -24,7 +24,7 @@
 
 			<!-- Other Button -->
 			<div class="text-center mt-10">
-				<Button variant="ghost" class="border-[#00384C] border-solid border">
+				<Button variant="ghost" class="border-[#00384C] border-solid border cursor-pointer" @click="onNavigateService">
 					<span> Lainnya </span>
 
 					<Icon name="ion:arrow-forward" class="text-xl" />
@@ -57,4 +57,8 @@ const cards = [
 		icon: Award,
 	},
 ];
+
+const onNavigateService = () => {
+	navigateTo("/service");
+};
 </script>

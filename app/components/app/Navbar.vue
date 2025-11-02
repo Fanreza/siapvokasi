@@ -15,11 +15,11 @@
 								<ChevronDown class="h-4 w-4" />
 							</DropdownMenuTrigger>
 							<DropdownMenuContent>
-								<DropdownMenuItem v-for="(child, j) in item.children" :key="j">
-									<NuxtLink :to="child.to || '#'">
+								<NuxtLink :to="child.to || '#'" v-for="(child, j) in item.children" :key="j" class="cursor-pointer">
+									<DropdownMenuItem class="cursor-pointer">
 										{{ child.label }}
-									</NuxtLink>
-								</DropdownMenuItem>
+									</DropdownMenuItem>
+								</NuxtLink>
 							</DropdownMenuContent>
 						</DropdownMenu>
 
@@ -84,10 +84,10 @@ const menuItems = [
 	{
 		label: "Profil",
 		children: [
-			{ label: "Sejarah", to: "#" },
-			{ label: "Visi - Misi", to: "#" },
-			{ label: "Struktur Organisasi", to: "#" },
-			{ label: "Profil Direktur", to: "#" },
+			{ label: "Sejarah", to: "/history" },
+			{ label: "Visi - Misi", to: "/vision" },
+			{ label: "Struktur Organisasi", to: "/organization" },
+			{ label: "Profil Direktur", to: "/director" },
 		],
 	},
 	{

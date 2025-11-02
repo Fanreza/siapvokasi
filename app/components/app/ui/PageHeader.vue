@@ -1,6 +1,6 @@
 <!-- components/PageHeader.vue -->
 <template>
-	<section class="bg-gray-50 py-12 md:py-16">
+	<section class="bg-gray-50 py-12 md:py-16 mb-10">
 		<!-- Pattern -->
 
 		<div class="container mx-auto px-4">
@@ -11,7 +11,7 @@
 				<!-- Breadcrumb -->
 				<nav class="flex items-center justify-center gap-2 text-base text-gray-600" aria-label="Breadcrumb">
 					<span class="font-medium text-primary">{{ breadcrumbs[0] }}</span>
-					<span>/</span>
+					<span v-if="breadcrumbs[1]">/</span>
 					<span class="font-medium text-primary">{{ breadcrumbs[1] }}</span>
 				</nav>
 
@@ -25,7 +25,7 @@
 <script setup lang="ts">
 const props = defineProps<{
 	title: string;
-	breadcrumbs: [string, string]; // [parent, current]
+	breadcrumbs: string[];
 	description?: string;
 }>();
 </script>
