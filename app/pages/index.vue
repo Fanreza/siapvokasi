@@ -2,6 +2,7 @@
 	<AppHero />
 	<AppService />
 	<AppStats />
+	<AppNews />
 	<AppFaq />
 	<AppContact />
 	<AppSocial />

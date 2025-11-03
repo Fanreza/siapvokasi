@@ -2,20 +2,20 @@
 <template>
 	<div class="mt-8 flex items-center justify-center gap-2">
 		<!-- Previous Button -->
-		<button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1" class="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50" aria-label="Previous page">
+		<button v-if="currentPage !== 1" @click="goToPage(currentPage - 1)" class="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50" aria-label="Previous page">
 			<ChevronLeft class="h-5 w-5" />
 		</button>
 
 		<!-- Page Numbers -->
 		<template v-for="page in visiblePages" :key="page">
-			<button v-if="page !== '...'" @click="goToPage(page as number)" :class="['flex h-10 w-10 items-center justify-center rounded-lg transition-colors', currentPage === page ? 'bg-blue-600 text-white hover:bg-blue-700' : 'border border-gray-300 text-gray-700 hover:bg-gray-50']">
+			<button v-if="page !== '...'" @click="goToPage(page as number)" :class="['flex h-10 w-10 items-center justify-center rounded-full transition-colors', currentPage === page ? 'bg-primary text-white hover:bg-primary-dark' : 'border border-gray-300 text-gray-700 hover:bg-gray-50']">
 				{{ page }}
 			</button>
 			<span v-else class="flex h-10 w-10 items-center justify-center text-gray-400"> ... </span>
 		</template>
 
 		<!-- Next Button -->
-		<button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages" class="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50" aria-label="Next page">
+		<button v-if="currentPage !== totalPages" @click="goToPage(currentPage + 1)" class="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50" aria-label="Next page">
 			<ChevronRight class="h-5 w-5" />
 		</button>
 	</div>

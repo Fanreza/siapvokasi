@@ -3,7 +3,7 @@
 		<div class="mx-auto py-12 w-[80%]">
 			<div class="grid gap-8 md:grid-cols-12">
 				<!-- Left Section - Logo & Info -->
-				<div class="md:col-span-4">
+				<div class="md:col-span-6">
 					<!-- Logos -->
 					<div class="mb-6 flex items-center flex-wrap gap-4">
 						<img src="/images/logo.png" alt="Logo Kementerian" class="w-36 object-contain" />
@@ -37,7 +37,7 @@
 				</div>
 
 				<!-- Navigation Columns -->
-				<div class="md:col-span-8">
+				<div class="md:col-span-6">
 					<div class="grid grid-cols-2 gap-8 md:grid-cols-4">
 						<!-- Profil -->
 						<div>
