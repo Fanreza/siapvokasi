@@ -1,15 +1,14 @@
-<!-- components/NewsCard.vue -->
 <template>
-	<NuxtLink :to="`/berita/${slug}`" class="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm transition-all hover:shadow-lg">
+	<NuxtLink :to="`/news/${slug}`" class="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-300 hover:shadow-lg">
 		<!-- Image Container -->
-		<div class="relative aspect-4/3 overflow-hidden bg-gray-200 rounded-md">
+		<div class="relative aspect-4/3 overflow-hidden bg-gray-200">
 			<img :src="image" :alt="title" class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
 
 			<!-- Overlay Gradient -->
 			<div class="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent"></div>
 
-			<!-- Arrow Button (only visible on hover) -->
-			<div class="absolute right-0 bottom-0 flex w-24 h-24 rounded-tl-full items-center justify-center bg-[#2452B5] text-white opacity-0 translate-x-2 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0">
+			<!-- Arrow Button (visible on hover only) -->
+			<div class="absolute right-0 bottom-0 flex w-24 h-24 rounded-tl-full items-center justify-center bg-[#2452B5] text-white opacity-0 translate-x-2 translate-y-2 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0">
 				<Icon name="ion:ios-arrow-round-forward" class="ml-5 mt-4 text-4xl" />
 			</div>
 		</div>
@@ -19,13 +18,13 @@
 			<!-- Date & Category -->
 			<div class="mb-3 flex items-center justify-between">
 				<span class="text-sm text-gray-500">{{ date }}</span>
-				<span class="rounded-full px-3 py-1 text-xs font-medium text-[#1F20A4] bg-[#C4D7FF]">
+				<span class="rounded-full bg-[#C4D7FF] px-3 py-1 text-xs font-medium text-[#1F20A4]">
 					{{ category }}
 				</span>
 			</div>
 
 			<!-- Title -->
-			<h3 class="mb-2 text-2xl font-bold text-primary line-clamp-2">
+			<h3 class="mb-2 text-2xl font-bold text-primary line-clamp-2 transition-colors duration-300 group-hover:text-[#2452B5]">
 				{{ title }}
 			</h3>
 
