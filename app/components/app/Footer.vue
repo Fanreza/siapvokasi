@@ -43,10 +43,10 @@
 						<div>
 							<h4 class="mb-4 text-lg xl:text-2xl font-bold text-[#1A1A1A]">Profil</h4>
 							<ul class="space-y-2 text-sm md:text-base text-[#4E4E4E]">
-								<li><a href="#">Sejarah</a></li>
-								<li><a href="#">Visi Misi</a></li>
-								<li><a href="#">Struktur Organisasi</a></li>
-								<li><a href="#">Profil Direktur</a></li>
+								<li><NuxtLink to="/history">Sejarah</NuxtLink></li>
+								<li><NuxtLink to="/function">Tugas & Fungsi</NuxtLink></li>
+								<li><NuxtLink to="/organization">Struktur Organisasi</NuxtLink></li>
+								<li><NuxtLink to="/director">Profil Direktur</NuxtLink></li>
 							</ul>
 						</div>
 
@@ -54,8 +54,8 @@
 						<div>
 							<h4 class="mb-4 text-lg xl:text-2xl font-bold text-[#1A1A1A]">Info</h4>
 							<ul class="space-y-2 text-sm md:text-base text-[#4E4E4E]">
-								<li><a href="#">Pengumuman</a></li>
-								<li><a href="#">Berita</a></li>
+								<li><NuxtLink to="/announcement">Pengumuman</NuxtLink></li>
+								<li><NuxtLink to="/news">Berita</NuxtLink></li>
 							</ul>
 						</div>
 
@@ -63,10 +63,10 @@
 						<div>
 							<h4 class="mb-4 text-lg xl:text-2xl font-bold text-[#1A1A1A]">Tautan</h4>
 							<ul class="space-y-2 text-sm md:text-base text-[#4E4E4E]">
-								<li><a href="#">SKKNI</a></li>
-								<li><a href="#">PROGLAT</a></li>
-								<li><a href="#">E-Trainnet</a></li>
-								<li><a href="#">InaSkill</a></li>
+								<li><a target="_blank" href="https://skkni.kemnaker.go.id/">SKKNI</a></li>
+								<li><a target="_blank" href="https://proglat.kemnaker.go.id/">PROGLAT</a></li>
+								<li><a target="_blank" href="https://e-training.kemnaker.go.id/">E-Training</a></li>
+								<li><a target="_blank" href="https://inaskills.kemnaker.go.id/">InaSkill</a></li>
 							</ul>
 						</div>
 
@@ -74,7 +74,7 @@
 						<div>
 							<h4 class="mb-4 text-lg xl:text-2xl font-bold text-[#1A1A1A]">Lainnya</h4>
 							<ul class="space-y-2 text-sm md:text-base text-[#4E4E4E]">
-								<li><a href="#">Galeri</a></li>
+								<li><NuxtLink to="/gallery">Galeri</NuxtLink></li>
 							</ul>
 						</div>
 					</div>

@@ -104,9 +104,9 @@ const menuItems = [
 		label: "Tautan",
 		external: false,
 		children: [
-			{ label: "SKKNI", to: "https://inaskills.kemnaker.go.id/", external: true },
+			{ label: "SKKNI", to: "https://skkni.kemnaker.go.id/", external: true },
 			{ label: "Proglat", to: "https://proglat.kemnaker.go.id/", external: true },
-			{ label: "InaSkill", to: "https://skkni.kemnaker.go.id/", external: true },
+			{ label: "InaSkill", to: "https://inaskills.kemnaker.go.id/", external: true },
 			{ label: "E-Training", to: "https://e-training.kemnaker.go.id/", external: true },
 		],
 	},
