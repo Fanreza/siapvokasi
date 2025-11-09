@@ -1,150 +1,40 @@
 <script setup lang="ts">
-import type { SidebarProps } from "@/components/ui/sidebar";
+import { BarChart3, Newspaper, Megaphone, Images, UserRound, Link2, Share2 } from "lucide-vue-next";
 
-import { AudioWaveform, BookOpen, Bot, Command, Frame, GalleryVerticalEnd, Map, PieChart, Settings2, SquareTerminal } from "lucide-vue-next";
+const route = useRoute();
 
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from "@/components/ui/sidebar";
-
-const props = withDefaults(defineProps<SidebarProps>(), {
-	collapsible: "icon",
-});
-
-// This is sample data.
-const data = {
-	user: {
-		name: "shadcn",
-		email: "m@example.com",
-		avatar: "/avatars/shadcn.jpg",
-	},
-	teams: [
-		{
-			name: "Acme Inc",
-			logo: GalleryVerticalEnd,
-			plan: "Enterprise",
-		},
-		{
-			name: "Acme Corp.",
-			logo: AudioWaveform,
-			plan: "Startup",
-		},
-		{
-			name: "Evil Corp.",
-			logo: Command,
-			plan: "Free",
-		},
-	],
-	navMain: [
-		{
-			title: "Playground",
-			url: "#",
-			icon: SquareTerminal,
-			isActive: true,
-			items: [
-				{
-					title: "History",
-					url: "#",
-				},
-				{
-					title: "Starred",
-					url: "#",
-				},
-				{
-					title: "Settings",
-					url: "#",
-				},
-			],
-		},
-		{
-			title: "Models",
-			url: "#",
-			icon: Bot,
-			items: [
-				{
-					title: "Genesis",
-					url: "#",
-				},
-				{
-					title: "Explorer",
-					url: "#",
-				},
-				{
-					title: "Quantum",
-					url: "#",
-				},
-			],
-		},
-		{
-			title: "Documentation",
-			url: "#",
-			icon: BookOpen,
-			items: [
-				{
-					title: "Introduction",
-					url: "#",
-				},
-				{
-					title: "Get Started",
-					url: "#",
-				},
-				{
-					title: "Tutorials",
-					url: "#",
-				},
-				{
-					title: "Changelog",
-					url: "#",
-				},
-			],
-		},
-		{
-			title: "Settings",
-			url: "#",
-			icon: Settings2,
-			items: [
-				{
-					title: "General",
-					url: "#",
-				},
-				{
-					title: "Team",
-					url: "#",
-				},
-				{
-					title: "Billing",
-					url: "#",
-				},
-				{
-					title: "Limits",
-					url: "#",
-				},
-			],
-		},
-	],
-	projects: [
-		{
-			name: "Design Engineering",
-			url: "#",
-			icon: Frame,
-		},
-		{
-			name: "Sales & Marketing",
-			url: "#",
-			icon: PieChart,
-		},
-		{
-			name: "Travel",
-			url: "#",
-			icon: Map,
-		},
-	],
-};
+const navItems = [
+	{ label: "Informasi Umum", to: "/admin", icon: BarChart3 },
+	{ label: "Berita", to: "/admin/news", icon: Newspaper },
+	{ label: "Pengumuman", to: "/admin/announcement", icon: Megaphone },
+	{ label: "Galeri", to: "/admin/gallery", icon: Images },
+	{ label: "Profil", to: "/admin/profile", icon: UserRound },
+	{ label: "Tautan", to: "/admin/links", icon: Link2 },
+	{ label: "Sosial Media", to: "/admin/social", icon: Share2 },
+];
 </script>
 
 <template>
-	<Sidebar v-bind="props">
-		<SidebarHeader> </SidebarHeader>
-		<SidebarContent>
-			<AdminNavMain :items="data.navMain" />
+	<Sidebar collapsible="icon" class="bg-red-500! border-r border-gray-200">
+		<!-- Header -->
+		<SidebarHeader class="bg-[#FBFCFE] flex items-center justify-center py-6">
+			<img src="/images/logo.png" alt="Kemnaker" class="w-40" />
+		</SidebarHeader>
+
+		<!-- Content -->
+		<SidebarContent class="bg-[#FBFCFE]">
+			<SidebarGroup>
+				<SidebarMenu>
+					<SidebarMenuItem v-for="item in navItems" :key="item.label">
+						<SidebarMenuButton as-child>
+							<NuxtLink class="transition-colors" :to="item.to" :class="[route.path === item.to ? 'bg-blue-50 text-blue-900' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-800']">
+								<component :is="item.icon" />
+								<span>{{ item.label }}</span>
+							</NuxtLink>
+						</SidebarMenuButton>
+					</SidebarMenuItem>
+				</SidebarMenu>
+			</SidebarGroup>
 		</SidebarContent>
 	</Sidebar>
 </template>

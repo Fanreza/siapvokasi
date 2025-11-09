@@ -10,11 +10,16 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@iconify/vue": "^5.0.0",
     "@nuxt/fonts": "^0.11.4",
     "@nuxt/icon": "^2.0.0",
     "@nuxt/image": "^1.11.0",
     "@pinia/nuxt": "^0.11.3",
     "@tailwindcss/vite": "^4.1.16",
+    "@tiptap/pm": "^3.10.4",
+    "@tiptap/react": "^3.10.4",
+    "@tiptap/starter-kit": "^3.10.4",
+    "@tiptap/vue-3": "^3.10.4",
     "@vueuse/core": "^14.0.0",
     "@vueuse/nuxt": "^14.0.0",
     "class-variance-authority": "^0.7.1",
@@ -37,6 +42,8 @@
   },
   "devDependencies": {
     "@types/node": "^24.10.0",
+    "sass": "^1.93.3",
+    "sass-embedded": "^1.93.3",
     "typescript": "^5.9.3"
   }
 }
