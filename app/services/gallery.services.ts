@@ -4,24 +4,20 @@ import type { Gallery, CreateGalleryDto, UpdateGalleryDto } from "~/models/galle
 export const useGalleryService = () => {
 	const { $apiFetch } = useNuxtApp();
 
-	// State utama
-	const response = ref<Gallery[] | null>(null);
-	const responseGet = ref<Gallery | null>(null);
+	// 🔄 Reactive state utama
+	const response = ref<ApiResponse<Gallery[]> | null>(null); // wrapped
+	const responseGet = ref<Gallery | null>(null); // plain (tidak wrapped)
 	const loading = ref(false);
 	const error = ref<Error | null>(null);
 
-	// 🧩 Get All
+	// 🧩 Get All (wrapped response)
 	const getAll = async (params?: { page?: number; perPage?: number }) => {
 		loading.value = true;
 		error.value = null;
 
 		try {
-			const res = await $apiFetch<Gallery[] | ApiResponse<Gallery[]>>("/gallery", { params });
-
-			// Deteksi kalau API tidak pakai wrapper
-			response.value = Array.isArray(res)
-				? res // plain array
-				: res.data; // wrapped
+			const res = await $apiFetch<ApiResponse<Gallery[]>>("/gallery", { params });
+			response.value = res;
 			return res;
 		} catch (err: any) {
 			error.value = err;
@@ -31,16 +27,15 @@ export const useGalleryService = () => {
 		}
 	};
 
-	// 🧩 Get One
+	// 🧩 Get One (non-wrapped response)
 	const get = async (id: number) => {
 		loading.value = true;
 		error.value = null;
 
 		try {
-			const res = await $apiFetch<Gallery | ApiResponse<Gallery>>(`/gallery/${id}`);
-
-			responseGet.value = (res as any).data ?? (res as Gallery);
-			return responseGet.value;
+			const res = await $apiFetch<Gallery>(`/gallery/${id}`);
+			responseGet.value = res;
+			return res;
 		} catch (err: any) {
 			error.value = err;
 			throw err;
@@ -68,9 +63,6 @@ export const useGalleryService = () => {
 				body: formData,
 			});
 
-			// update cache jika ada
-			if (response.value) response.value.unshift(res);
-
 			return res;
 		} catch (err: any) {
 			error.value = err;
@@ -80,7 +72,7 @@ export const useGalleryService = () => {
 		}
 	};
 
-	// 🧩 Update (PUT, non-wrapped response)
+	// 🧩 Update (PUT, non-wrapped)
 	const update = async (id: number, payload: UpdateGalleryDto) => {
 		loading.value = true;
 		error.value = null;
@@ -99,10 +91,10 @@ export const useGalleryService = () => {
 				body: formData,
 			});
 
-			// update cache
-			if (response.value) {
-				const idx = response.value.findIndex((g) => g.id === id);
-				if (idx !== -1) response.value[idx] = res;
+			// update cache (jika ada)
+			if (response.value?.data) {
+				const idx = response.value.data.findIndex((g) => g.id === id);
+				if (idx !== -1) response.value.data[idx] = res;
 			}
 
 			responseGet.value = res;
@@ -122,10 +114,6 @@ export const useGalleryService = () => {
 
 		try {
 			await $apiFetch(`/gallery/${id}`, { method: "DELETE" });
-
-			if (response.value) {
-				response.value = response.value.filter((g) => g.id !== id);
-			}
 		} catch (err: any) {
 			error.value = err;
 			throw err;
@@ -135,8 +123,8 @@ export const useGalleryService = () => {
 	};
 
 	return {
-		response,
-		responseGet,
+		response, // wrapped (ApiResponse<Gallery[]>)
+		responseGet, // plain (Gallery)
 		loading,
 		error,
 		getAll,
