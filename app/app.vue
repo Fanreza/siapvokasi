@@ -28,7 +28,7 @@ useHead({
 
 <template>
 	<Html lang="en">
-		<Toaster />
+		<Toaster richColors />
 
 		<div>
 			<NuxtLayout>

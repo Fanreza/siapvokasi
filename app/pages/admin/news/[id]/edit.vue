@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { toast } from "vue-sonner";
 import { UploadCloud } from "lucide-vue-next";
 
@@ -12,28 +12,47 @@ definePageMeta({
 	middleware: "admin",
 });
 
+const route = useRoute();
 const router = useRouter();
-const { create, loading } = useNewsService();
+
+const { get, update, loading, responseGet } = useNewsService();
 const { getAll: getCategories, response: categories } = useNewsCategoriesService();
 
-// 🧩 Form reactive
 const form = ref({
 	title: "",
 	excerpt: "",
 	description: "",
 	status: "draft",
-	categoryId: null,
+	categoryId: null as number | null,
 	file: null as File | null,
 });
-
 const previewUrl = ref<string | null>(null);
+const existingImage = ref<string | null>(null);
 
-// Fetch kategori
+// 🔹 Fetch existing news by ID
 onMounted(async () => {
-	await getCategories();
+	try {
+		await getCategories();
+
+		const id = Number(route.params.id);
+		await get(id);
+
+		form.value = {
+			title: responseGet.value!.title,
+			excerpt: responseGet.value!.excerpt,
+			description: responseGet.value!.description,
+			status: responseGet.value!.status,
+			categoryId: responseGet.value!.categoryId,
+			file: null,
+		};
+
+		existingImage.value = responseGet.value!.file ?? null;
+	} catch (err) {
+		toast.error("Gagal memuat data berita.");
+	}
 });
 
-// Handle file upload preview
+// 🔹 File upload preview
 const handleFileChange = (event: Event) => {
 	const target = event.target as HTMLInputElement;
 	if (!target.files?.length) return;
@@ -42,10 +61,11 @@ const handleFileChange = (event: Event) => {
 	previewUrl.value = URL.createObjectURL(form.value.file!);
 };
 
-// Handle submit
+// 🔹 Submit (Update)
 const handleSubmit = async () => {
 	try {
-		// Validate required fields: CreateNewsDto expects categoryId to be a number
+		const id = Number(route.params.id);
+
 		if (form.value.categoryId == null) {
 			toast.error("Pilih kategori berita.");
 			return;
@@ -60,15 +80,14 @@ const handleSubmit = async () => {
 			file: form.value.file,
 		};
 
-		await create(payload);
-		toast.success("Berita berhasil dibuat!");
+		await update(id, payload);
+		toast.success("Berita berhasil diperbarui!");
 		router.push("/admin/news");
 	} catch (err: any) {
-		toast.error("Gagal membuat berita.");
+		toast.error("Gagal memperbarui berita.");
 	}
 };
 
-// Cancel
 const handleCancel = () => router.back();
 </script>
 
@@ -77,13 +96,13 @@ const handleCancel = () => router.back();
 		<!-- Header -->
 		<div class="flex items-center justify-between">
 			<div>
-				<h1 class="text-2xl font-semibold text-gray-900">Buat Berita Baru</h1>
+				<h1 class="text-2xl font-semibold text-gray-900">Edit Berita</h1>
 			</div>
 			<Button class="bg-blue-900 hover:bg-blue-800 text-white font-medium px-6" @click="handleCancel"> Kembali </Button>
 		</div>
 
 		<!-- Form -->
-		<div class="space-y-10">
+		<div v-if="responseGet || !loading" class="space-y-10">
 			<!-- Judul -->
 			<div class="space-y-2">
 				<label class="block text-sm font-medium text-gray-800">Judul Berita</label>
@@ -99,23 +118,39 @@ const handleCancel = () => router.back();
 			<!-- Deskripsi -->
 			<div class="space-y-2">
 				<label class="block text-sm font-medium text-gray-800">Deskripsi</label>
-				<AdminAppEditor v-model="form.description" />
+				<AppEditor v-model="form.description" />
 			</div>
 
 			<!-- Upload Gambar -->
 			<div class="space-y-2">
 				<label class="block text-sm font-medium text-gray-800">Gambar</label>
 
-				<div v-if="!previewUrl" class="relative flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg p-6 text-gray-500 hover:border-blue-400 transition">
+				<!-- Default state (no new upload yet) -->
+				<div v-if="!previewUrl && existingImage" class="relative w-64 h-40 border rounded-lg overflow-hidden group">
+					<img :src="existingImage" class="object-cover w-full h-full" />
+					<button
+						type="button"
+						class="absolute top-2 right-2 bg-white/80 text-red-600 rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
+						@click="
+							existingImage = null;
+							form.file = null;
+						"
+					>
+						✕
+					</button>
+				</div>
+
+				<!-- Upload dropzone -->
+				<div v-else-if="!previewUrl && !existingImage" class="relative flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg p-6 text-gray-500 hover:border-blue-400 transition">
 					<UploadCloud class="h-8 w-8 mb-2 text-gray-400" />
 					<span class="text-sm font-medium">Klik untuk upload atau drag & drop</span>
 					<span class="text-xs text-gray-400">SVG, PNG, JPG, GIF (max. 2MB)</span>
 					<input type="file" class="absolute inset-0 opacity-0 cursor-pointer" @change="handleFileChange" />
 				</div>
 
-				<!-- Preview -->
+				<!-- New Preview -->
 				<div v-else class="relative w-64 h-40 border rounded-lg overflow-hidden group">
-					<img :src="previewUrl" class="object-cover w-full h-full" />
+					<img :src="previewUrl!" class="object-cover w-full h-full" />
 					<button
 						type="button"
 						class="absolute top-2 right-2 bg-white/80 text-red-600 rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
@@ -132,7 +167,7 @@ const handleCancel = () => router.back();
 			<!-- Kategori -->
 			<div class="space-y-2">
 				<label class="block text-sm font-medium text-gray-800">Kategori</label>
-				<Select v-model="form.categoryId" placeholder="Pilih kategori">
+				<Select v-model="form.categoryId">
 					<SelectTrigger>
 						<SelectValue placeholder="Pilih kategori" />
 					</SelectTrigger>
@@ -162,7 +197,15 @@ const handleCancel = () => router.back();
 			<!-- Actions -->
 			<div class="flex justify-end gap-3 pt-4 border-t">
 				<Button variant="outline" @click="handleCancel">Batal</Button>
-				<AdminAppLoadingButton :loading="loading" class="bg-blue-900 hover:bg-blue-800 text-white font-medium" @click="handleSubmit"> Simpan </AdminAppLoadingButton>
+				<AdminAppLoadingButton :loading="loading" class="bg-blue-900 hover:bg-blue-800 text-white font-medium" @click="handleSubmit"> Perbarui </AdminAppLoadingButton>
+			</div>
+		</div>
+
+		<!-- Loading state -->
+		<div v-else class="py-20 text-center text-gray-500">
+			<div class="flex items-center justify-center gap-2">
+				<span class="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></span>
+				Memuat data berita...
 			</div>
 		</div>
 	</div>

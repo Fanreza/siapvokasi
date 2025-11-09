@@ -5,7 +5,7 @@ export default defineNuxtPlugin((nuxtApp) => {
 
 	// Handle base URL secara aman
 	const rawApiBase = (config.public as Record<string, unknown>)?.apiBase;
-	const apiBase = typeof rawApiBase === "string" ? rawApiBase : String(rawApiBase ?? "http://localhost:3000");
+	const apiBase = typeof rawApiBase === "string" ? rawApiBase : String(rawApiBase ?? "http://localhost:3000/v1/");
 
 	// Buat instance global
 	const apiFetch = $fetch.create({
@@ -18,20 +18,21 @@ export default defineNuxtPlugin((nuxtApp) => {
 
 			// 401 Unauthorized → redirect ke login
 			if (status === 401) {
-				toast.error("Sesi anda telah berakhir. Silakan login kembali.");
+				toast.error(message);
 				await navigateTo("/admin/login");
 				return;
 			}
 
 			// 403 Forbidden
 			if (status === 403) {
-				toast.warning("Anda tidak memiliki akses ke resource ini.");
+				toast.error(message);
 				return;
 			}
 
 			// 404 Not Found
 			if (status === 404) {
-				toast.error("Data tidak ditemukan.");
+				toast.error(message);
+
 				return;
 			}
 
@@ -43,7 +44,7 @@ export default defineNuxtPlugin((nuxtApp) => {
 
 			// 500–599
 			if (status >= 500) {
-				toast.error("Server error. Silakan coba lagi nanti.");
+				toast.error(message);
 				return;
 			}
 		},

@@ -10,12 +10,15 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@atlaskit/pragmatic-drag-and-drop": "^1.7.7",
+    "@atlaskit/pragmatic-drag-and-drop-hitbox": "^1.1.0",
     "@iconify/vue": "^5.0.0",
     "@nuxt/fonts": "^0.11.4",
     "@nuxt/icon": "^2.0.0",
     "@nuxt/image": "^1.11.0",
     "@pinia/nuxt": "^0.11.3",
     "@tailwindcss/vite": "^4.1.16",
+    "@tanstack/vue-table": "^8.21.3",
     "@tiptap/pm": "^3.10.4",
     "@tiptap/react": "^3.10.4",
     "@tiptap/starter-kit": "^3.10.4",
