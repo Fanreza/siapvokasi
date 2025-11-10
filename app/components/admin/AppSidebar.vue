@@ -40,9 +40,9 @@ const navItems = [
 		icon: UserRound,
 		children: [
 			{ label: "Tugas Fungsi", to: "/admin/function" },
-			{ label: "Sejarah", to: "/admin/news/history" },
-			{ label: "Profil Direktur", to: "/admin/news/profile" },
-			{ label: "Struktur Organisasi", to: "/admin/news/structure" },
+			{ label: "Sejarah", to: "/admin/history" },
+			{ label: "Profil Direktur", to: "/admin/profile" },
+			{ label: "Struktur Organisasi", to: "/admin/structure" },
 		],
 	},
 ];
