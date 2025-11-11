@@ -13,10 +13,15 @@ const { getAll, remove, response, loading } = useDirectorProfileService();
 
 const showDeleteDialog = ref(false);
 const selectedToDelete = ref<number | null>(null);
+const currentPage = ref(1);
+
+const params = computed(() => ({
+	page: currentPage.value,
+}));
 
 const fetchProfiles = async () => {
 	try {
-		await getAll();
+		await getAll(false, params.value);
 	} catch {
 		toast.error("Gagal memuat data direktur.");
 	}
@@ -44,6 +49,12 @@ const handleDelete = async () => {
 
 const onCreate = () => navigateTo("/admin/director/create");
 const onEdit = (id: number) => navigateTo(`/admin/director/${id}/edit`);
+
+const onPageChange = (page: number) => {
+	currentPage.value = page;
+
+	fetchProfiles();
+};
 </script>
 
 <template>
@@ -96,6 +107,8 @@ const onEdit = (id: number) => navigateTo(`/admin/director/${id}/edit`);
 				</TableBody>
 			</Table>
 		</div>
+
+		<AdminAppPagination v-if="response?.meta" @update:page="onPageChange" :total="response.meta.totalItems" :per-page="response.meta.perPage" />
 
 		<!-- Delete Dialog -->
 		<Dialog v-model:open="showDeleteDialog">

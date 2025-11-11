@@ -12,10 +12,10 @@ export const useDirectorProfileService = () => {
 	// Get all
 	const endpoint = (isPublic = false) => (isPublic ? "/public/director-profiles" : "/director-profiles");
 
-	const getAll = async (isPublic = false) => {
+	const getAll = async (isPublic = false, params: any) => {
 		loading.value = true;
 		try {
-			const res = await $apiFetch<ApiResponse<DirectorProfile[]>>(endpoint(isPublic));
+			const res = await $apiFetch<ApiResponse<DirectorProfile[]>>(endpoint(isPublic), { params });
 			response.value = res;
 			return res;
 		} finally {

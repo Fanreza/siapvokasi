@@ -5,6 +5,11 @@ export interface Gallery {
 	files?: string[]; // URL gambar yang sudah di-upload
 	createdAt: string;
 	updatedAt: string;
+	images: {
+		id: number;
+		galleryId: number;
+		image: string;
+	}[];
 }
 
 export interface CreateGalleryDto {

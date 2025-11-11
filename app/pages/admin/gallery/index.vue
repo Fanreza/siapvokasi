@@ -16,10 +16,14 @@ const currentPage = ref(1);
 const selectedToDelete = ref<number | null>(null);
 const showDeleteDialog = ref(false);
 
+const params = computed(() => ({
+	page: currentPage.value,
+}));
+
 // 🧩 Fetch data
 const fetchGallery = async () => {
 	try {
-		await getAll();
+		await getAll(params.value);
 	} catch (err) {
 		toast.error("Gagal memuat data galeri.");
 	}
@@ -50,6 +54,12 @@ const handleDelete = async () => {
 // 🧭 Navigation
 const onCreate = () => navigateTo("/admin/gallery/create");
 const onEdit = (id: number) => navigateTo(`/admin/gallery/${id}/edit`);
+
+const onPageChange = (page: number) => {
+	currentPage.value = page;
+
+	fetchGallery();
+};
 </script>
 
 <template>
@@ -77,13 +87,7 @@ const onEdit = (id: number) => navigateTo(`/admin/gallery/${id}/edit`);
 		<!-- Data -->
 		<div v-else-if="response?.data?.length" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 			<div v-for="gallery in response.data" :key="gallery.id" class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition">
-				<!-- Gambar -->
-				<div class="relative">
-					<img v-if="gallery.files?.length" :src="gallery.files[0]" alt="Gallery Image" class="h-40 w-full object-cover" @error="gallery.files[0] = '/images/placeholder.jpg'" />
-					<div v-else class="h-40 flex items-center justify-center bg-gray-50 text-gray-400">
-						<ImageIcon class="h-10 w-10" />
-					</div>
-				</div>
+				<ImagePreview :src="gallery?.images[0]?.image!" alt="Preview Banner" />
 
 				<!-- Konten -->
 				<div class="flex flex-col justify-between p-4">
@@ -111,9 +115,7 @@ const onEdit = (id: number) => navigateTo(`/admin/gallery/${id}/edit`);
 		<div v-else class="py-20 text-center text-gray-500">Belum ada galeri.</div>
 
 		<!-- Pagination -->
-		<div v-if="response?.meta" class="flex items-center justify-between border-t border-gray-100 pt-6">
-			<AdminAppPagination v-model:page="currentPage" :total="response.meta.totalItems" :per-page="response.meta.perPage" />
-		</div>
+		<AdminAppPagination v-if="response?.meta" @update:page="onPageChange" :total="response.meta.totalItems" :per-page="response.meta.perPage" />
 
 		<!-- Dialog Delete -->
 		<Dialog v-model:open="showDeleteDialog">

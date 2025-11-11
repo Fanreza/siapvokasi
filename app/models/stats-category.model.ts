@@ -4,6 +4,11 @@ export interface StatisticCategory {
 	link: string;
 	createdAt: string;
 	updatedAt: string;
+	statistics: {
+		id: number;
+		number: number;
+		name: string;
+	}[];
 }
 
 export interface CreateStatisticCategoryDto {

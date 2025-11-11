@@ -15,9 +15,13 @@ const currentPage = ref(1);
 const selectedToDelete = ref<number | null>(null);
 const showDeleteDialog = ref(false);
 
+const params = computed(() => ({
+	page: currentPage.value,
+}));
+
 const fetchCategories = async () => {
 	try {
-		await getAll();
+		await getAll(false, params.value);
 	} catch {
 		toast.error("Gagal memuat kategori statistik.");
 	}
@@ -45,6 +49,12 @@ const handleDelete = async () => {
 
 const onCreate = () => navigateTo("/admin/stats/categories/create");
 const onEdit = (id: number) => navigateTo(`/admin/stats/categories/${id}/edit`);
+
+const onPageChange = (page: number) => {
+	currentPage.value = page;
+
+	fetchCategories();
+};
 </script>
 
 <template>
@@ -100,9 +110,7 @@ const onEdit = (id: number) => navigateTo(`/admin/stats/categories/${id}/edit`);
 			</Table>
 		</div>
 
-		<div v-if="response?.meta" class="flex items-center justify-between border-t border-gray-100 pt-6">
-			<AdminAppPagination v-model:page="currentPage" :total="response.meta.totalItems" :per-page="response.meta.perPage" />
-		</div>
+		<AdminAppPagination v-if="response?.meta" @update:page="onPageChange" :total="response.meta.totalItems" :per-page="response.meta.perPage" />
 
 		<Dialog v-model:open="showDeleteDialog">
 			<DialogContent class="sm:max-w-md">

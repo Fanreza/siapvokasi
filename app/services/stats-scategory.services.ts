@@ -10,12 +10,14 @@ export const useStatisticCategoryService = () => {
 	const error = ref<Error | null>(null);
 
 	// 🧩 Get All
-	const getAll = async (params?: { page?: number; perPage?: number }) => {
+	const endpoint = (isPublic = false) => (isPublic ? "/public/statistics/categories" : "/statistics/categories");
+
+	const getAll = async (isPublic = false, params?: { page?: number; perPage?: number }) => {
 		loading.value = true;
 		error.value = null;
 
 		try {
-			const res = await $apiFetch<ApiResponse<StatisticCategory[]>>("/statistics/categories", {
+			const res = await $apiFetch<ApiResponse<StatisticCategory[]>>(endpoint(isPublic), {
 				params,
 			});
 			response.value = res;

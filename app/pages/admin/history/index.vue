@@ -15,9 +15,13 @@ const currentPage = ref(1);
 const selectedToDelete = ref<number | null>(null);
 const showDeleteDialog = ref(false);
 
+const params = computed(() => ({
+	page: currentPage.value,
+}));
+
 const fetchHistories = async () => {
 	try {
-		await getAll();
+		await getAll(false, params.value);
 	} catch {
 		toast.error("Gagal memuat data sejarah.");
 	}
@@ -47,6 +51,12 @@ const handleDelete = async () => {
 // Navigation
 const onCreate = () => navigateTo("/admin/history/create");
 const onEdit = (id: number) => navigateTo(`/admin/history/${id}/edit`);
+
+const onPageChange = (page: number) => {
+	currentPage.value = page;
+
+	fetchHistories();
+};
 </script>
 
 <template>
@@ -98,9 +108,7 @@ const onEdit = (id: number) => navigateTo(`/admin/history/${id}/edit`);
 		</div>
 
 		<!-- Pagination -->
-		<div v-if="response?.meta" class="flex items-center justify-between border-t border-gray-100 pt-6">
-			<AdminAppPagination v-model:page="currentPage" :total="response.meta.totalItems" :per-page="response.meta.perPage" />
-		</div>
+		<AdminAppPagination v-if="response?.meta" @update:page="onPageChange" :total="response.meta.totalItems" :per-page="response.meta.perPage" />
 
 		<!-- Delete Dialog -->
 		<Dialog v-model:open="showDeleteDialog">

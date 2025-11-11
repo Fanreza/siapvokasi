@@ -69,7 +69,8 @@ const handleSubmit = async () => {
 				</div>
 
 				<div v-else class="relative rounded-lg overflow-hidden border group w-full max-w-2xl">
-					<img :src="previewUrl" alt="Structure Preview" class="object-contain w-full max-h-[500px] bg-gray-50" />
+					<ImagePreview :src="previewUrl" alt="Preview Banner" />
+
 					<input type="file" class="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" @change="handleFileChange" />
 
 					<div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition">

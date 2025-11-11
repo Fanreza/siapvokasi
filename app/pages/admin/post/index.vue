@@ -16,9 +16,13 @@ const selectedToDelete = ref<number | null>(null);
 const showDeleteDialog = ref(false);
 
 // 🧩 Fetch data
+const params = computed(() => ({
+	page: currentPage.value,
+}));
+
 const fetchPosts = async () => {
 	try {
-		await getAll();
+		await getAll(params.value, false);
 	} catch {
 		toast.error("Gagal memuat data postingan media sosial.");
 	}
@@ -49,6 +53,12 @@ const handleDelete = async () => {
 // 🧭 Navigation
 const onCreate = () => navigateTo("/admin/post/create");
 const onEdit = (id: number) => navigateTo(`/admin/post/${id}/edit`);
+
+const onPageChange = (page: number) => {
+	currentPage.value = page;
+
+	fetchPosts();
+};
 </script>
 
 <template>
@@ -116,9 +126,7 @@ const onEdit = (id: number) => navigateTo(`/admin/post/${id}/edit`);
 		</div>
 
 		<!-- Pagination -->
-		<div v-if="response?.meta" class="flex items-center justify-between border-t border-gray-100 pt-6">
-			<AdminAppPagination v-model:page="currentPage" :total="response.meta.totalItems" :per-page="response.meta.perPage" />
-		</div>
+		<AdminAppPagination v-if="response?.meta" @update:page="onPageChange" :total="response.meta.totalItems" :per-page="response.meta.perPage" />
 
 		<!-- Delete Dialog -->
 		<Dialog v-model:open="showDeleteDialog">

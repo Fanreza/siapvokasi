@@ -19,9 +19,13 @@ const selectedToDelete = ref<number | null>(null);
 const showDeleteDialog = ref(false);
 
 // 🧩 Fetch FAQ
+const params = computed(() => ({
+	page: currentPage.value,
+}));
+
 const fetchFaq = async () => {
 	try {
-		await getAll();
+		await getAll(params.value);
 	} catch {
 		toast.error("Gagal memuat data FAQ.");
 	}
@@ -51,6 +55,12 @@ const handleDelete = async () => {
 // 🧭 Navigation
 const onCreate = () => navigateTo("/admin/faq/create");
 const onEdit = (id: number) => navigateTo(`/admin/faq/${id}/edit`);
+
+const onPageChange = (page: number) => {
+	currentPage.value = page;
+
+	fetchFaq();
+};
 </script>
 
 <template>
@@ -121,10 +131,7 @@ const onEdit = (id: number) => navigateTo(`/admin/faq/${id}/edit`);
 			</Table>
 		</div>
 
-		<!-- Pagination -->
-		<div v-if="response?.meta" class="flex items-center justify-between border-t border-gray-100 pt-6">
-			<AdminAppPagination v-model:page="currentPage" :total="response.meta.totalItems" :per-page="response.meta.perPage" />
-		</div>
+		<AdminAppPagination v-if="response?.meta" @update:page="onPageChange" :total="response.meta.totalItems" :per-page="response.meta.perPage" />
 
 		<!-- Dialog Delete -->
 		<Dialog v-model:open="showDeleteDialog">

@@ -18,9 +18,13 @@ const selectedToDelete = ref<number | null>(null);
 const showDeleteDialog = ref(false);
 
 // 🧩 Fetch Data
+const params = computed(() => ({
+	page: currentPage.value,
+}));
+
 const fetchServices = async () => {
 	try {
-		await getAll();
+		await getAll(false, params.value);
 	} catch {
 		toast.error("Gagal memuat data layanan.");
 	}
@@ -51,6 +55,12 @@ const handleDelete = async () => {
 // 🧭 Navigation
 const onCreate = () => navigateTo("/admin/service/create");
 const onEdit = (id: number) => navigateTo(`/admin/service/${id}/edit`);
+
+const onPageChange = (page: number) => {
+	currentPage.value = page;
+
+	fetchServices();
+};
 </script>
 
 <template>
@@ -138,9 +148,7 @@ const onEdit = (id: number) => navigateTo(`/admin/service/${id}/edit`);
 		</div>
 
 		<!-- Pagination -->
-		<div v-if="response?.meta" class="flex items-center justify-between border-t border-gray-100 pt-6">
-			<AdminAppPagination v-model:page="currentPage" :total="response.meta.totalItems" :per-page="response.meta.perPage" />
-		</div>
+		<AdminAppPagination v-if="response?.meta" @update:page="onPageChange" :total="response.meta.totalItems" :per-page="response.meta.perPage" />
 
 		<!-- Dialog Delete -->
 		<Dialog v-model:open="showDeleteDialog">

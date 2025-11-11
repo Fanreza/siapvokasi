@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from "vue";
-import { useStatisticService } from "@/services/stats.services";
+import { useStatisticCategoryService } from "@/services/stats-scategory.services";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const { getAll, response, loading } = useStatisticService();
+const { getAll, response, loading } = useStatisticCategoryService();
 const emblaApi = ref<CarouselApi>();
 const current = ref(0);
 
