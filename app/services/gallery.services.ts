@@ -4,14 +4,13 @@ import type { Gallery, CreateGalleryDto, UpdateGalleryDto } from "~/models/galle
 export const useGalleryService = () => {
 	const { $apiFetch } = useNuxtApp();
 
-	// 🔄 Reactive state utama
-	const response = ref<ApiResponse<Gallery[]> | null>(null); // wrapped
-	const responseGet = ref<Gallery | null>(null); // plain (tidak wrapped)
+	// 🔄 State utama
+	const response = ref<ApiResponse<Gallery[]> | null>(null);
+	const responseGet = ref<Gallery | null>(null);
 	const loading = ref(false);
 	const error = ref<Error | null>(null);
 
-	// 🧩 Get All (wrapped response)
-	// Helper untuk endpoint public/admin
+	// 🔹 Helper endpoint
 	const endpoint = (isPublic = false) => (isPublic ? "/public/galleries" : "/gallery");
 
 	// 🧩 Get All
@@ -19,9 +18,7 @@ export const useGalleryService = () => {
 		loading.value = true;
 		error.value = null;
 		try {
-			const res = await $apiFetch<ApiResponse<Gallery[]>>(endpoint(isPublic), {
-				params,
-			});
+			const res = await $apiFetch<ApiResponse<Gallery[]>>(endpoint(isPublic), { params });
 			response.value = res;
 			return res;
 		} catch (err: any) {
@@ -39,8 +36,7 @@ export const useGalleryService = () => {
 		try {
 			const res = await $apiFetch<Gallery>(`${endpoint(isPublic)}/${id}`);
 			// @ts-ignore
-
-			responseGet.value = res.data;
+			responseGet.value = res.data || res;
 			return res;
 		} catch (err: any) {
 			error.value = err;
@@ -59,16 +55,12 @@ export const useGalleryService = () => {
 			const formData = new FormData();
 			formData.append("title", payload.title);
 			if (payload.description) formData.append("description", payload.description);
-
-			if (payload.files?.length) {
-				payload.files.forEach((file) => formData.append("files", file));
-			}
+			if (payload.files?.length) payload.files.forEach((f) => formData.append("files", f));
 
 			const res = await $apiFetch<Gallery>("/gallery", {
 				method: "POST",
 				body: formData,
 			});
-
 			return res;
 		} catch (err: any) {
 			error.value = err;
@@ -78,7 +70,7 @@ export const useGalleryService = () => {
 		}
 	};
 
-	// 🧩 Update (PUT, non-wrapped)
+	// 🧩 Update
 	const update = async (id: number, payload: UpdateGalleryDto) => {
 		loading.value = true;
 		error.value = null;
@@ -87,21 +79,12 @@ export const useGalleryService = () => {
 			const formData = new FormData();
 			if (payload.title) formData.append("title", payload.title);
 			if (payload.description) formData.append("description", payload.description);
-
-			if (payload.files?.length) {
-				payload.files.forEach((file) => formData.append("files", file));
-			}
+			if (payload.files?.length) payload.files.forEach((f) => formData.append("files", f));
 
 			const res = await $apiFetch<Gallery>(`/gallery/${id}`, {
 				method: "PUT",
 				body: formData,
 			});
-
-			// update cache (jika ada)
-			if (response.value?.data) {
-				const idx = response.value.data.findIndex((g) => g.id === id);
-				if (idx !== -1) response.value.data[idx] = res;
-			}
 
 			responseGet.value = res;
 			return res;
@@ -113,11 +96,10 @@ export const useGalleryService = () => {
 		}
 	};
 
-	// 🧩 Delete
+	// 🧩 Delete Gallery
 	const remove = async (id: number) => {
 		loading.value = true;
 		error.value = null;
-
 		try {
 			await $apiFetch(`/gallery/${id}`, { method: "DELETE" });
 		} catch (err: any) {
@@ -128,9 +110,48 @@ export const useGalleryService = () => {
 		}
 	};
 
+	// 🆕 Add Images to Gallery (POST /gallery/:id/images)
+	const addImages = async (galleryId: number, files: File[]) => {
+		loading.value = true;
+		error.value = null;
+
+		try {
+			const formData = new FormData();
+			files.forEach((f) => formData.append("files", f));
+
+			const res = await $apiFetch<Gallery>(`/gallery/${galleryId}/upload-images`, {
+				method: "POST",
+				body: formData,
+			});
+			return res;
+		} catch (err: any) {
+			error.value = err;
+			throw err;
+		} finally {
+			loading.value = false;
+		}
+	};
+
+	// 🆕 Delete Image from Gallery (DELETE /gallery/:galleryId/images/:imageId)
+	const deleteImage = async (galleryId: number, imageId: number) => {
+		loading.value = true;
+		error.value = null;
+
+		try {
+			await $apiFetch(`/gallery/${galleryId}/images/${imageId}`, {
+				method: "DELETE",
+			});
+		} catch (err: any) {
+			error.value = err;
+			throw err;
+		} finally {
+			loading.value = false;
+		}
+	};
+
 	return {
-		response, // wrapped (ApiResponse<Gallery[]>)
-		responseGet, // plain (Gallery)
+		response,
+		responseGet,
 		loading,
 		error,
 		getAll,
@@ -138,5 +159,7 @@ export const useGalleryService = () => {
 		create,
 		update,
 		remove,
+		addImages,
+		deleteImage,
 	};
 };
