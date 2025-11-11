@@ -21,6 +21,8 @@ const currentPage = ref(1);
 // 🧩 Fetch data dari API
 const params = computed(() => ({
 	page: currentPage.value,
+	search: search.value || undefined,
+	category: selectedCategory.value !== "all" ? selectedCategory.value : undefined,
 }));
 
 const fetchNews = async () => {
@@ -69,6 +71,10 @@ const onPageChange = (page: number) => {
 
 	fetchNews();
 };
+
+watch(selectedCategory, () => {
+	fetchNews();
+});
 </script>
 
 <template>
@@ -83,12 +89,9 @@ const onPageChange = (page: number) => {
 		</div>
 
 		<!-- Filters -->
-		<div class="flex flex-wrap items-center justify-between gap-4">
+		<div class="flex items-center justify-between gap-4">
 			<!-- Search -->
-			<div class="relative w-full md:w-1/3">
-				<Search class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
-				<Input v-model="search" placeholder="Cari berita..." class="pl-9" />
-			</div>
+			<CommonDebouncedSearch v-model="search" placeholder="Cari berita..." @search="fetchNews" />
 
 			<!-- Category Filter -->
 			<Select v-model="selectedCategory">

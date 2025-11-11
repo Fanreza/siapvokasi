@@ -15,7 +15,7 @@ export const useGalleryService = () => {
 	const endpoint = (isPublic = false) => (isPublic ? "/public/galleries" : "/gallery");
 
 	// 🧩 Get All
-	const getAll = async (params?: { page?: number; perPage?: number }, isPublic = false) => {
+	const getAll = async (params?: { page?: number; search?: string }, isPublic = false) => {
 		loading.value = true;
 		error.value = null;
 		try {
@@ -38,7 +38,9 @@ export const useGalleryService = () => {
 		error.value = null;
 		try {
 			const res = await $apiFetch<Gallery>(`${endpoint(isPublic)}/${id}`);
-			responseGet.value = res;
+			// @ts-ignore
+
+			responseGet.value = res.data;
 			return res;
 		} catch (err: any) {
 			error.value = err;

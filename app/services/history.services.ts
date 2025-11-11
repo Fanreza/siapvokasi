@@ -13,7 +13,7 @@ export const useHistoryService = () => {
 	const endpoint = (isPublic = false) => (isPublic ? "/public/histories" : "/histories");
 
 	// 🧩 Get All
-	const getAll = async (isPublic = false, params: any) => {
+	const getAll = async (isPublic = false, params?: any) => {
 		loading.value = true;
 		error.value = null;
 		try {

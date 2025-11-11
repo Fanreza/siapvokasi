@@ -11,6 +11,9 @@ export interface Statistic {
 		number: number;
 		name: string;
 	}[];
+	category: {
+		name: string;
+	};
 }
 
 export interface CreateStatisticDto {

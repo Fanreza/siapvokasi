@@ -78,7 +78,11 @@ const handleCancel = () => router.back();
 			<div class="space-y-2">
 				<label class="block text-sm font-medium text-gray-800">Icon (opsional)</label>
 				<Input v-model="form.icon" placeholder="fa-solid fa-user" />
-				<p class="text-xs text-gray-500">Masukkan class icon, misal: <code>lucide-home</code> atau <code>fa-solid fa-book</code>.</p>
+				<p class="text-xs text-gray-500">
+					Masukkan class icon, misal: <code>lucide-home</code> atau <code>fa-solid fa-book</code>.
+
+					<span class="text-primary underline">List Icon: <a href="https://icones.js.org/collection/" target="_blank">icones.js.org</a></span>
+				</p>
 			</div>
 
 			<!-- Actions -->

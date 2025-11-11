@@ -20,6 +20,7 @@ const showDeleteDialog = ref(false);
 // 🧩 Fetch Data
 const params = computed(() => ({
 	page: currentPage.value,
+	search: searchQuery.value || undefined,
 }));
 
 const fetchServices = async () => {
@@ -73,8 +74,7 @@ const onPageChange = (page: number) => {
 
 		<!-- Search -->
 		<div class="relative w-full sm:w-1/3">
-			<Search class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
-			<Input v-model="searchQuery" placeholder="Cari layanan..." class="pl-9" />
+			<CommonDebouncedSearch v-model="searchQuery" placeholder="Cari layanan..." @search="fetchServices" />
 		</div>
 
 		<!-- Table -->

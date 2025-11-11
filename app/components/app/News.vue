@@ -16,7 +16,7 @@
 
 			<!-- News Grid -->
 			<div v-else-if="newsItems.length > 0" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-				<AppUiNewsCard v-for="news in newsItems" :key="news.id" :image="news.file || '/images/placeholder.jpg'" :date="formatDate(news.createdAt)" :category="news.category?.title || '-'" :title="news.title" :excerpt="news.excerpt" :slug="`/news/${news.slug}`" />
+				<AppUiNewsCard v-for="news in newsItems" :key="news.id" :image="news.file || '/images/placeholder.jpg'" :date="formatDate(news.createdAt)" :category="news.category?.title || '-'" :title="news.title" :excerpt="news.excerpt" :slug="news.slug" />
 			</div>
 
 			<!-- Empty State -->

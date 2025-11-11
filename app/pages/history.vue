@@ -19,8 +19,8 @@
 
 				<!-- Timeline Items -->
 				<div class="relative pl-6 space-y-10">
-					<Stepper orientation="vertical" class="mx-auto flex w-full max-w-md flex-col justify-start gap-10">
-						<StepperItem v-for="(item, index) in histories" :key="item.id" v-slot="{ state }" class="relative flex w-full items-start gap-6" :step="index - 1">
+					<Stepper orientation="vertical" :model-value="histories.length" class="mx-auto flex w-full max-w-md flex-col justify-start gap-10">
+						<StepperItem v-for="(item, index) in histories" :key="item.id" v-slot="{ state }" class="relative flex w-full items-start gap-6" :step="index">
 							<!-- Garis penghubung -->
 							<StepperSeparator v-if="index !== histories.length - 1" class="absolute left-[18px] top-[38px] block h-[105%] w-[2px] rounded-full bg-blue-900" />
 

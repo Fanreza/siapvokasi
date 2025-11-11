@@ -94,7 +94,7 @@ const onPageChange = (page: number) => {
 								{{ stat.link }}
 							</a>
 						</TableCell>
-						<TableCell>{{ stat.categoryId }}</TableCell>
+						<TableCell>{{ stat.category.name }}</TableCell>
 						<TableCell class="text-center">
 							<div class="flex justify-center gap-2">
 								<Button variant="ghost" size="icon" @click="onEdit(stat.id)">

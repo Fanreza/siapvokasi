@@ -77,10 +77,7 @@ const onPageChange = (page: number) => {
 
 		<!-- Search -->
 		<div class="flex items-center justify-between">
-			<div class="relative w-1/3">
-				<Search class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
-				<Input v-model="searchQuery" placeholder="Cari kategori..." class="pl-9" />
-			</div>
+			<CommonDebouncedSearch v-model="searchQuery" placeholder="Cari kategori..." @search="fetchData" />
 		</div>
 
 		<!-- Table -->

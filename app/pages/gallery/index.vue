@@ -2,7 +2,7 @@
 <template>
 	<section class="bg-white py-16 md:py-24">
 		<!-- Title -->
-		<AppUiPageHeader title="Berita" :breadcrumbs="['Informasi', 'Berita']" />
+		<AppUiPageHeader title="Galeri" :breadcrumbs="['Informasi', 'Galeri']" />
 
 		<div class="mx-auto w-[80%]">
 			<!-- Loading State -->
@@ -12,7 +12,7 @@
 
 			<!-- Grid -->
 			<div v-else-if="newsItems.length > 0" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-				<AppUiGalleryCard v-for="news in newsItems" :key="news.id" :image="news.file || '/images/placeholder.jpg'" :title="news.title" :excerpt="news.description" :slug="`/news/${news.slug}`" />
+				<AppUiGalleryCard v-for="news in newsItems" :key="news.id" :image="news.file || '/images/placeholder.jpg'" :title="news.title" :excerpt="news.description" :slug="news.id" />
 			</div>
 
 			<!-- Empty State -->

@@ -66,7 +66,7 @@ const handleCancel = () => router.back();
 			<!-- Deskripsi -->
 			<div class="space-y-2">
 				<label class="block text-sm font-medium text-gray-800">Deskripsi</label>
-				<textarea v-model="form.description" rows="4" class="w-full border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-800" placeholder="Masukkan deskripsi pengumuman"></textarea>
+				<AdminAppEditor v-model="form.description" />
 			</div>
 
 			<!-- Upload File -->

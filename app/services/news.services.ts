@@ -13,7 +13,7 @@ export const useNewsService = () => {
 	// ✅ Get All
 	const endpoint = (isPublic = false) => (isPublic ? "/public/news" : "/news");
 
-	const getAll = async (isPublic = false, params: { page?: number; perPage?: number } = {}) => {
+	const getAll = async (isPublic = false, params: { page?: number; search?: string } = {}) => {
 		loading.value = true;
 		error.value = null;
 
