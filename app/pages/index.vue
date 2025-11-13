@@ -1,11 +1,8 @@
 <template>
-	<AppHero />
-	<AppService />
-	<AppStats />
-	<AppNews />
+	<AppFlow />
+	<AppInfo />
+	<AppDecor />
 	<AppFaq />
-	<AppContact />
-	<AppSocial />
 </template>
 
 <script setup lang="ts"></script>

@@ -1,62 +1,58 @@
 <template>
-	<section class="bg-white py-20 md:py-24" id="faq">
-		<div class="container mx-auto px-4">
-			<div class="grid gap-12 lg:grid-cols-2 lg:gap-16 lg:items-start">
-				<!-- Left Side - Illustration -->
-				<div class="flex items-center justify-center lg:sticky lg:top-32">
-					<NuxtImg src="/images/faq.png" alt="FAQ Illustration" width="500" height="500" class="max-w-[50%] lg:max-w-[80%] xl:max-w-full h-auto" />
-				</div>
+	<section class="bg-gradient-to-br from-gray-50 to-blue-50 py-20 relative overflow-hidden">
+		<!-- Decorative blur circle -->
+		<div class="absolute top-0 right-0 w-96 h-96 bg-blue-200 rounded-full opacity-20 blur-3xl"></div>
 
-				<!-- Right Side - FAQ -->
-				<div class="flex flex-col justify-center">
-					<h2 class="mb-8 text-center text-4xl font-bold text-gray-900 md:text-5xl">FAQ</h2>
-
-					<!-- Loading Skeleton -->
-					<div v-if="loading" class="space-y-4">
-						<div v-for="i in 4" :key="i" class="animate-pulse">
-							<div class="h-5 w-3/4 bg-gray-200 rounded mb-2"></div>
-							<div class="h-4 w-2/3 bg-gray-200 rounded"></div>
-						</div>
-					</div>
-
-					<!-- Accordion -->
-					<Accordion v-else-if="faqs.length > 0" type="single" collapsible class="space-y-4">
-						<AccordionItem v-for="(faq, index) in faqs" :key="faq.id" :value="`item-${index + 1}`" class="!border-b rounded-lg border px-6 data-[state=open]:border-[#0C2C71] data-[state=open]:text-primary">
-							<AccordionTrigger class="text-left text-base font-medium hover:no-underline text-gray-900 data-[state=open]:text-primary">
-								<div class="flex items-start gap-3">
-									<span class="text-gray-500">{{ index + 1 }}.</span>
-									<span>{{ faq.question }}</span>
-								</div>
-							</AccordionTrigger>
-
-							<AccordionContent class="pl-7 pt-2 text-sm leading-relaxed text-gray-600">
-								{{ faq.answer }}
-							</AccordionContent>
-						</AccordionItem>
-					</Accordion>
-
-					<!-- Empty State -->
-					<p v-else class="text-center text-gray-500">Belum ada pertanyaan yang tersedia.</p>
-				</div>
+		<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+			<!-- Header -->
+			<div class="text-center mb-12">
+				<div class="text-blue-600 font-semibold mb-3 uppercase text-xs tracking-wide">FAQ</div>
+				<h2 class="text-3xl lg:text-4xl font-bold text-gray-900">Frequesntly Asked<br />Questions</h2>
 			</div>
+
+			<!-- Accordion -->
+			<Accordion type="single" collapsible class="space-y-4">
+				<AccordionItem v-for="(faq, index) in faqs" :key="index" :value="`item-${index}`" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+					<AccordionTrigger class="px-6 py-4 hover:bg-gray-50 transition-colors [&[data-state=open]]:bg-gray-50">
+						<div class="flex items-center gap-3 text-left w-full">
+							<span class="text-blue-600 font-bold text-lg flex-shrink-0">Q</span>
+							<span class="font-semibold text-gray-900 text-base">{{ faq.question }}</span>
+						</div>
+					</AccordionTrigger>
+					<AccordionContent class="px-6 pb-4 pt-2">
+						<p class="text-gray-600 text-sm leading-relaxed pl-8">
+							{{ faq.answer }}
+						</p>
+					</AccordionContent>
+				</AccordionItem>
+			</Accordion>
 		</div>
 	</section>
 </template>
 
 <script setup lang="ts">
-import { useFaqService } from "@/services/faq.services";
-import { toast } from "vue-sonner";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
-const { getAll, response, loading } = useFaqService();
-
-const faqs = ref<any[]>([]);
-
-onMounted(async () => {
-	try {
-		await getAll({}, true); // ambil dari /public/faq
-		faqs.value = response.value?.data || [];
-	} catch {
-		toast.error("Gagal memuat FAQ publik.");
-	}
-});
+const faqs = [
+	{
+		question: "Bagaimana Penggunaan?",
+		answer: "It's a disclaimer - the entire process of writing a blog post often takes more than a couple of hours, even if you can type eighty words as per minute and your writing skills are sharp.",
+	},
+	{
+		question: "Persyaratan apa saja yang dibutuhkan?",
+		answer: "Anda memerlukan dokumen identitas, formulir pendaftaran yang telah diisi, dan dokumen pendukung lainnya sesuai jenis layanan yang diajukan.",
+	},
+	{
+		question: "Bagaimana cara melakukan pelacakan layanan yang sudah didaftarkan?",
+		answer: "Anda dapat melacak layanan menggunakan nomor tiket yang diberikan saat pendaftaran melalui fitur tracking di halaman utama.",
+	},
+	{
+		question: "Bagaimana cara memiliki akun?",
+		answer: 'Klik tombol "Login Akun" atau "Buat Pengajuan Baru", kemudian pilih opsi registrasi dan isi formulir pendaftaran dengan data yang valid.',
+	},
+];
 </script>
+
+<style scoped>
+/* Additional custom styles if needed */
+</style>

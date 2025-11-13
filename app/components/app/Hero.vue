@@ -1,85 +1,118 @@
 <template>
-	<section class="relative h-screen w-full overflow-hidden xl:pt-10">
-		<!-- Background -->
-		<div class="absolute inset-0">
-			<!-- Kalau loading, tampilkan skeleton -->
-			<div v-if="loading" class="h-full w-full bg-gray-200 animate-pulse"></div>
+	<div class="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-blue-100 relative overflow-hidden">
+		<!-- Decorative Background Elements -->
+		<div class="absolute top-20 left-10 w-3 h-3 bg-blue-400 rounded-full"></div>
+		<div class="absolute top-40 left-32 w-16 h-16 border-2 border-blue-300 rounded-full opacity-30"></div>
+		<div class="absolute bottom-32 left-20 w-12 h-12 bg-purple-300 rounded-full opacity-40"></div>
+		<div class="absolute top-1/3 left-1/4 w-20 h-1 bg-blue-400 transform -rotate-45 opacity-30"></div>
 
-			<!-- Kalau sudah ada data -->
-			<img v-else :src="heroData?.banner || '/images/hero.png'" alt="Hero Banner" class="h-full w-full object-cover" />
+		<!-- Header/Navbar -->
+		<header class="relative z-50">
+			<nav class="mx-auto px-4 sm:px-6 lg:px-14 py-10">
+				<div class="flex justify-between items-center">
+					<!-- Logo -->
+					<div class="flex items-center space-x-3">
+						<img src="/images/logo.png" alt="" class="w-40" />
+					</div>
 
-			<!-- Overlay -->
-			<div class="absolute inset-0 bg-[#171717]/60 backdrop-blur-xs"></div>
-		</div>
+					<!-- Desktop Menu -->
+					<div class="hidden md:flex items-center space-x-20">
+						<a href="#" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Home</a>
+						<a href="#" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Persyaratan</a>
+						<a href="#" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">FAQ</a>
+						<a href="#" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Kontak</a>
+						<button class="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition-all font-medium shadow-lg hover:shadow-xl">Login Akun</button>
+					</div>
 
-		<!-- Content -->
-		<div class="relative z-10 flex h-full items-center justify-center px-4 text-center">
-			<div class="max-w-4xl">
-				<!-- Judul -->
-				<div v-if="loading" class="space-y-3 mb-6">
-					<Skeleton class="h-10 w-3/4 mx-auto" />
-					<Skeleton class="h-10 w-1/2 mx-auto" />
+					<!-- Mobile Menu Button -->
+					<button class="md:hidden p-2" @click="mobileMenuOpen = !mobileMenuOpen">
+						<svg v-if="!mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+						</svg>
+						<svg v-else class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+						</svg>
+					</button>
 				</div>
 
-				<h1 v-else class="mb-6 text-2xl xl:text-6xl font-bold leading-tight text-white md:text-4xl lg:text-5xl animate-fade">
-					{{ heroData?.heading || "Direktorat Bina Standardisasi Kompetensi dan Program Pelatihan" }}
-				</h1>
+				<!-- Mobile Menu -->
+				<div v-if="mobileMenuOpen" class="md:hidden mt-4 bg-white rounded-xl shadow-xl p-4 space-y-3">
+					<a href="#" class="block text-gray-700 hover:text-blue-600 font-medium py-2">Home</a>
+					<a href="#" class="block text-gray-700 hover:text-blue-600 font-medium py-2">Persyaratan</a>
+					<a href="#" class="block text-gray-700 hover:text-blue-600 font-medium py-2">FAQ</a>
+					<a href="#" class="block text-gray-700 hover:text-blue-600 font-medium py-2">Kontak</a>
+					<button class="w-full bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition-colors font-medium">Login Akun</button>
+				</div>
+			</nav>
+		</header>
 
-				<!-- Subjudul -->
-				<div v-if="loading" class="space-y-2 mb-8">
-					<Skeleton class="h-5 w-5/6 mx-auto" />
-					<Skeleton class="h-5 w-3/5 mx-auto" />
+		<!-- Hero Section -->
+		<section class="relative w-[90%] mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
+			<div class="grid lg:grid-cols-2 gap-12 items-center">
+				<!-- Left Content -->
+				<div class="relative z-10">
+					<div class="text-blue-600 font-bold mb-4 uppercase text-xs tracking-widest">PENGELOLAAN SIAP VOKASI</div>
+					<h1 class="text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-6 leading-tight">Layanan Sistem Informasi Ajuan Pelacakan</h1>
+					<p class="text-gray-600 mb-10 text-base lg:text-lg leading-relaxed max-w-xl">Kemudahan Ketenagakerjaan Republik Indonesia menyediakan sistem informasi dalam pengajuan layanan.</p>
+
+					<!-- Search/Tracking Box -->
+					<div class="bg-white rounded-2xl shadow-2xl p-6 w-full" v-if="layout === 'default'">
+						<div class="flex gap-3">
+							<input v-model="ticketNumber" type="text" placeholder="Masukan Nomor Tiket" class="flex-1 px-5 py-3.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-black font-bold" />
+							<Button @click="onNavigateTicket" :disabled="!ticketNumber" class="bg-blue-600 text-white px-8 py-3.5 rounded-xl hover:bg-blue-700 transition-all font-semibold whitespace-nowrap shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">Tracking</Button>
+						</div>
+					</div>
 				</div>
 
-				<p v-else class="mb-8 text-sm text-gray-100 md:text-xl lg:text-2xl animate-fade" style="animation-delay: 0.2s">
-					{{ heroData?.subHeading || "Membangun pelatihan untuk masa depan yang lebih baik berarti menyiapkan sumber daya manusia yang unggul dan adaptif terhadap perubahan." }}
-				</p>
-
-				<!-- Tombol -->
-				<div v-if="loading" class="flex justify-center">
-					<Skeleton class="h-12 w-48 rounded-md" />
+				<!-- Right Illustration -->
+				<div class="relative lg:block hidden">
+					<!-- Main illustration container with 3D isometric elements -->
+					<div class="relative w-full h-[500px]">
+						<img src="/images/hero.png" alt="Hero Illustration" class="w-full h-full object-contain" />
+					</div>
 				</div>
-
-				<Button v-else size="lg" class="group px-8 xl:px-10 py-6 xl:py-7 text-sm md:text-base animate-fade" style="animation-delay: 0.4s" @click="navigateToNews">
-					<Icon name="iconamoon:send-fill" class="mr-2 h-5 w-5 transition-transform group-hover:scale-110" />
-					Telusuri yang Terbaru
-				</Button>
 			</div>
-		</div>
-	</section>
+		</section>
+	</div>
 </template>
 
 <script setup lang="ts">
-import { Skeleton } from "@/components/ui/skeleton";
-import { useHeroService } from "@/services/hero.services";
+import { ref } from "vue";
 
-const { get, response, loading } = useHeroService();
-const heroData = computed(() => response.value?.data || null);
+const mobileMenuOpen = ref(false);
+const ticketNumber = ref("");
 
-onMounted(async () => {
-	try {
-		await get(true);
-	} catch {
-		console.warn("Gagal memuat data hero, fallback ke default.");
+withDefaults(
+	defineProps<{
+		layout?: "default" | "tracking";
+	}>(),
+	{
+		layout: "default",
 	}
-});
+);
 
-const navigateToNews = () => navigateTo("#news");
+const onNavigateTicket = () => {
+	navigateTo({
+		path: "/tracking",
+		query: {
+			ticket: ticketNumber.value,
+		},
+	});
+};
 </script>
 
 <style scoped>
-@keyframes fadeIn {
-	from {
-		opacity: 0;
-		transform: translateY(20px);
+@keyframes pulse {
+	0%,
+	100% {
+		opacity: 0.2;
 	}
-	to {
-		opacity: 1;
-		transform: translateY(0);
+	50% {
+		opacity: 0.3;
 	}
 }
 
-.animate-fade {
-	animation: fadeIn 0.8s ease-out forwards;
+.animate-pulse {
+	animation: pulse 3s ease-in-out infinite;
 }
 </style>
