@@ -1,5 +1,5 @@
 <template>
-	<section class="bg-gradient-to-br from-gray-50 to-blue-50 py-20 relative overflow-hidden">
+	<section id="faq" class="bg-gradient-to-br from-gray-50 to-blue-50 py-20 relative overflow-hidden">
 		<!-- Decorative blur circle -->
 		<div class="absolute top-0 right-0 w-96 h-96 bg-blue-200 rounded-full opacity-20 blur-3xl"></div>
 

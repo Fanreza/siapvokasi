@@ -1,5 +1,5 @@
 <template>
-	<AppHero />
+	<AppNavbar />
 
 	<slot />
 

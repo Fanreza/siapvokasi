@@ -1,5 +1,5 @@
 <template>
-	<footer class="bg-white border-t border-gray-200 py-12">
+	<footer id="kontak" class="bg-white border-t border-gray-200 py-12">
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 			<div class="grid md:grid-cols-4 gap-8 mb-8">
 				<!-- Logo & Description -->
