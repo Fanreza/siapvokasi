@@ -1,5 +1,5 @@
 <template>
-	<header class="w-full z-50">
+	<header class="w-full z-50 relative bg-transparent">
 		<nav class="mx-auto px-4 sm:px-6 lg:px-14 py-2">
 			<div class="flex justify-between items-center">
 				<!-- Logo -->
@@ -15,8 +15,6 @@
 						<!-- underline -->
 						<span class="absolute left-1/2 -bottom-1 h-[3px] bg-blue-600 rounded transition-all duration-300 transform -translate-x-1/2" :class="activeMenu === item.to ? 'w-[50%] opacity-100' : 'w-0 opacity-0 group-hover:w-[50%]'"></span>
 					</a>
-
-					<button class="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition-all font-medium shadow-lg hover:shadow-xl">Login Akun</button>
 				</div>
 
 				<!-- Mobile Menu Button -->
@@ -31,7 +29,8 @@
 			</div>
 
 			<!-- Mobile Menu -->
-			<div v-if="mobileMenuOpen" class="md:hidden mt-4 bg-white rounded-xl shadow-xl p-4 space-y-3">
+			<!-- Mobile Menu -->
+			<div v-if="mobileMenuOpen" class="md:hidden absolute left-0 right-0 top-full mx-4 bg-white rounded-xl shadow-xl p-4 space-y-3 z-40">
 				<a
 					v-for="item in menus"
 					:key="item.label"
@@ -45,8 +44,6 @@
 				>
 					{{ item.label }}
 				</a>
-
-				<button class="w-full bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition-colors font-medium">Login Akun</button>
 			</div>
 		</nav>
 	</header>

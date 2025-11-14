@@ -14,7 +14,7 @@
 					</div>
 
 					<!-- Description -->
-					<p class="text-sm text-gray-600 leading-relaxed mb-6 max-w-lg">Siap Vokasi adalah sistem informasi dalam pengajuan dan pelacakan layanan pada Direktorat Jenderal Pembinaan.</p>
+					<p class="text-sm text-gray-600 leading-relaxed mb-6 max-w-lg">Siap Vokasi adalah sistem informasi dalam pengajuan dan pelacakan layanan pada Stankom.</p>
 				</div>
 
 				<!-- SIAP VOKASI Links -->
@@ -22,16 +22,16 @@
 					<h3 class="font-bold text-gray-900 mb-4 text-base">SIAP VOKASI</h3>
 					<ul class="space-y-3 text-sm text-gray-600">
 						<li>
-							<a href="#" class="hover:text-blue-600 transition-colors">Home</a>
+							<a href="#home" class="hover:text-blue-600 transition-colors">Home</a>
 						</li>
 						<li>
-							<a href="#" class="hover:text-blue-600 transition-colors">Persyaratan</a>
+							<a href="#terms" class="hover:text-blue-600 transition-colors">Persyaratan</a>
 						</li>
 						<li>
-							<a href="#" class="hover:text-blue-600 transition-colors">FAQ</a>
+							<a href="#faq" class="hover:text-blue-600 transition-colors">FAQ</a>
 						</li>
 						<li>
-							<a href="#" class="hover:text-blue-600 transition-colors">Kontak</a>
+							<a href="#kontak" class="hover:text-blue-600 transition-colors">Kontak</a>
 						</li>
 					</ul>
 				</div>
@@ -40,10 +40,7 @@
 				<div>
 					<h3 class="font-bold text-gray-900 mb-4 text-base">KONTAK</h3>
 					<div class="text-sm text-gray-600 space-y-3">
-						<p class="leading-relaxed">
-							Gedung Aneka Bhakti I Lantai 4 dan 5<br />
-							Jl. Jendral Gatot Subroto Kav. 51, Jakarta Selatan
-						</p>
+						<p class="leading-relaxed">Gedung Vokasi Kemnaker Lantai 4 dan 5 Jl. Jenderal Gatot Subroto Kav. 44 Jakarta Selatan</p>
 						<div class="space-y-1">
 							<a href="tel:0411588201" class="block text-blue-600 font-semibold hover:text-blue-700 transition-colors"> (0411) 588201 </a>
 							<a href="tel:0411586202" class="block text-blue-600 font-semibold hover:text-blue-700 transition-colors"> (0411) 586202 </a>
@@ -54,7 +51,7 @@
 
 			<!-- Copyright -->
 			<div class="border-t border-gray-200 pt-8 text-center">
-				<p class="text-sm text-gray-600">Copyright @SIMKASJI © 2025. All Rights Reserved.</p>
+				<p class="text-sm text-gray-600">Copyright KEMNAKER © 2025. All Rights Reserved.</p>
 			</div>
 		</div>
 	</footer>

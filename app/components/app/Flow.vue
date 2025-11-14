@@ -15,7 +15,7 @@
 
 			<!-- STEPPER -->
 			<div class="max-w-6xl mx-auto">
-				<Stepper v-model="currentStep" class="flex gap-6 justify-between">
+				<Stepper v-model="currentStep" class="flex flex-wrap justify-center items-center gap-12 p-10">
 					<StepperItem v-for="item in steps" :key="item.step" :step="item.step" class="relative flex-1 flex flex-col items-center">
 						<!-- IMAGE BOX (fixed height) -->
 
@@ -23,7 +23,7 @@
 							<div class="flex flex-col items-center text-center w-full cursor-default">
 								<div class="relative w-[170px] h-[170px] flex items-center justify-center">
 									<!-- Number on top right -->
-									<div class="absolute -top-3 -right-6 text-[70px] font-bold text-blue-100 select-none">
+									<div class="absolute -top-3 -right-10 text-[70px] font-bold text-gray-800 select-none">
 										{{ item.step }}
 									</div>
 
@@ -31,14 +31,14 @@
 								</div>
 
 								<!-- Title -->
-								<StepperTitle class="text-xl font-bold text-gray-900 mt-6">
+								<StepperTitle class="text-2xl font-bold text-gray-900 mt-6">
 									{{ item.title }}
 								</StepperTitle>
 
 								<!-- Description -->
 								<StepperDescription class="text-sm text-gray-600 mt-4 leading-relaxed min-h-[80px]">
 									<ul v-if="item.description.length > 1" class="space-y-1">
-										<li v-for="(desc, idx) in item.description" :key="idx" class="flex items-start justify-center"><span class="text-blue-600 mr-1">•</span>{{ desc }}</li>
+										<li v-for="(desc, idx) in item.description" :key="idx" class="flex items-start justify-center">{{ desc }}</li>
 									</ul>
 									<p v-else>
 										{{ item.description[0] }}
@@ -46,8 +46,6 @@
 								</StepperDescription>
 							</div>
 						</StepperTrigger>
-
-						<StepperSeparator v-if="item.step !== steps[steps.length - 1].step" class="w-full h-px" />
 					</StepperItem>
 				</Stepper>
 			</div>
