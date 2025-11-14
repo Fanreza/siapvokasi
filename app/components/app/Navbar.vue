@@ -54,8 +54,9 @@ import { ref } from "vue";
 
 // menu dinamis
 const menus = ref([
-	{ label: "Home", to: "#home" },
+	{ label: "Penelusuran", to: "#home" },
 	{ label: "Persyaratan", to: "#terms" },
+	{ label: "Pengajuan", to: "#request" },
 	{ label: "FAQ", to: "#faq" },
 	{ label: "Kontak", to: "#kontak" },
 ]);

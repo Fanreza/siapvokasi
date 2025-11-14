@@ -1,5 +1,5 @@
 <template>
-	<section class="relative bg-linear-to-r from-blue-600 via-blue-600 to-blue-500 pt-20 overflow-hidden">
+	<section id="request" class="relative bg-linear-to-r from-blue-600 via-blue-600 to-blue-500 pt-20 overflow-hidden">
 		<!-- Decorative geometric shapes -->
 		<div class="absolute top-12 left-1/4 w-4 h-4 bg-blue-800 transform rotate-45"></div>
 		<div class="absolute top-20 right-1/4 w-6 h-6 border-2 border-blue-400 transform rotate-12"></div>
