@@ -8,7 +8,7 @@
 
 			<UserSidebarMenuItem icon="file-text" label="Form Pengajuan" to="/user/request" />
 
-			<UserSidebarMenuItem icon="user" label="Profil" to="/user/profil" />
+			<UserSidebarMenuItem icon="user" label="Profil" to="/user/profile" />
 
 			<UserSidebarMenuItem icon="log-out" label="Logout" to="/logout" />
 		</nav>

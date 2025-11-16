@@ -3,7 +3,7 @@
 		<!-- Header -->
 		<UserHeader />
 
-		<div class="flex gap-6 px-6 pt-6">
+		<div class="flex gap-6 p-10">
 			<!-- Sidebar -->
 			<UserSidebar />
 

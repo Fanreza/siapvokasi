@@ -11,7 +11,7 @@ const allData = ref([
 		id: "BBDA6B10-75FB",
 		layanan: "CLSP",
 		tanggal: "Tgl. 2022-12-06 23:04:25.000",
-		statusBerkas: "Permohonan",
+		statusBerkas: "Baru",
 		status: "Proses",
 	},
 	{
@@ -25,7 +25,7 @@ const allData = ref([
 		id: "BBDA6B10-1111",
 		layanan: "Akreditasi Pelatihan",
 		tanggal: "Tgl. 2022-12-06 23:04:25.000",
-		statusBerkas: "Permohonan",
+		statusBerkas: "Baru",
 		status: "Selesai",
 	},
 ]);
@@ -47,20 +47,21 @@ const handlePageChange = (newPage: number) => {
 	page.value = newPage;
 };
 
-const badgeVariant = (status: string) => {
-	switch (status) {
-		case "Proses":
-			return "secondary";
-		case "Perbaikan Ke 1":
-			return "destructive";
-		case "Ditolak":
-			return "destructive";
-		case "Selesai":
-			return "default";
-		default:
-			return "outline";
-	}
+const statusColor = (status: string) => {
+	const s = status.toLowerCase();
+
+	if (s.includes("baru")) return "text-blue-500";
+	if (s.includes("diproses")) return "text-blue-500";
+	if (s.includes("proses")) return "text-blue-500"; // jika kamu pakai “Proses”
+	if (s.includes("perbaikan")) return "text-yellow-500";
+	if (s.includes("diperbaiki")) return "text-yellow-500";
+	if (s.includes("ditolak")) return "text-red-500";
+	if (s.includes("selesai")) return "text-green-500";
+
+	return "text-gray-500";
 };
+
+const drawerRef = ref();
 </script>
 
 <template>
@@ -101,15 +102,19 @@ const badgeVariant = (status: string) => {
 					</TableCell>
 
 					<TableCell>
-						<Badge variant="outline">{{ item.statusBerkas }}</Badge>
+						<span :class="statusColor(item.statusBerkas)">
+							{{ item.statusBerkas }}
+						</span>
 					</TableCell>
 
 					<TableCell>
-						<Badge :variant="badgeVariant(item.status)">{{ item.status }}</Badge>
+						<span :class="statusColor(item.status)">
+							{{ item.status }}
+						</span>
 					</TableCell>
 
 					<TableCell>
-						<Button size="sm" variant="secondary">Lihat</Button>
+						<Button size="sm" variant="secondary" @click="drawerRef.openSheet(item)">Lihat</Button>
 					</TableCell>
 				</TableRow>
 			</TableBody>
@@ -117,5 +122,7 @@ const badgeVariant = (status: string) => {
 
 		<!-- PAGINATION -->
 		<UserPagination :page="page" :total="filteredData.length" :perPage="perPage" @updatePage="handlePageChange" />
+
+		<CommonDrawerTracking ref="drawerRef" />
 	</div>
 </template>
