@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const props = defineProps({
-	selectedService: { type: String, default: "" },
+	selectedService: { type: String, default: "" }, // example: "1", "2", "3"
 });
 
 const emit = defineEmits<{
@@ -9,7 +9,18 @@ const emit = defineEmits<{
 	(e: "next"): void;
 }>();
 
-// terpanggil oleh child ketika user submit
+// serviceId dari string → number
+const serviceId = computed(() => Number(props.selectedService));
+
+// Mapping ID → form
+const FORM_MAP: Record<number, string> = {
+	1: "skkni",
+	2: "skknk",
+	3: "clsp",
+};
+
+const formType = computed(() => FORM_MAP[serviceId.value] || null);
+
 const onSubmit = (payload: any) => {
 	emit("submit", payload);
 	emit("next");
@@ -18,13 +29,16 @@ const onSubmit = (payload: any) => {
 
 <template>
 	<div>
-		<!-- jika layanan 1 dipilih -->
-		<UserPageFormSKKNI v-if="props.selectedService === 'skkni'" @previous="$emit('previous')" @submit="onSubmit" />
+		<!-- SKKNI -->
+		<UserPageFormSKKNI v-if="formType === 'skkni'" @previous="$emit('previous')" @submit="onSubmit" :service-id="serviceId" />
 
-		<!-- layanan 2 -->
-		<UserPageFormCLSP v-else-if="props.selectedService === 'clsp'" @previous="$emit('previous')" @submit="onSubmit" />
+		<!-- SKKNK -->
+		<!-- <UserPageFormSKKNK v-else-if="formType === 'skknk'" @previous="$emit('previous')" @submit="onSubmit" /> -->
 
-		<!-- default / belum pilih -->
+		<!-- CLSP -->
+		<UserPageFormCLSP v-else-if="formType === 'clsp'" @previous="$emit('previous')" @submit="onSubmit" />
+
+		<!-- Default -->
 		<div v-else class="p-6 text-center text-gray-500">Silakan pilih layanan terlebih dahulu.</div>
 	</div>
 </template>

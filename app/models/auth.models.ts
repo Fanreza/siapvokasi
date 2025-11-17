@@ -37,3 +37,21 @@ export interface LoginResponse {
 }
 
 export type ProfileResponse = AuthUser;
+
+export interface RegisterRequest {
+	name: string;
+	email: string;
+	password: string;
+	passwordConfirmation: string;
+}
+
+export interface RegisterResponse {
+	message: string;
+	user: {
+		id: number;
+		name: string;
+		email: string;
+		createdAt: string;
+		updatedAt: string;
+	};
+}

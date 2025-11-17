@@ -4,58 +4,91 @@ definePageMeta({
 	layout: "user",
 });
 
+import { ref, onMounted, computed } from "vue";
+import { getApplications } from "~/services/application.services";
+
+// PAGINATION
 const page = ref(1);
 const perPage = 10;
 
-const allData = ref([
-	{
-		id: "BBDA6B10-75FB",
-		layanan: "CLSP",
-		tanggal: "Tgl. 2022-12-06 23:04:25.000",
-		statusBerkas: "Baru",
-		status: "Proses",
-	},
-	{
-		id: "BBDA6B10-75FB",
-		layanan: "Rekomendasi Izin Menduduki Jabatan",
-		tanggal: "Tgl. 2022-12-06 23:04:25.000",
-		statusBerkas: "Perbaikan Ke 1",
-		status: "Ditolak",
-	},
-	{
-		id: "BBDA6B10-1111",
-		layanan: "Akreditasi Pelatihan",
-		tanggal: "Tgl. 2022-12-06 23:04:25.000",
-		statusBerkas: "Baru",
-		status: "Selesai",
-	},
-]);
-
-const total = computed(() => allData.value.length);
-
+// DATA DARI API
+const allData = ref<any[]>([]);
 const search = ref("");
+const loading = ref(true);
 
+// 🟦 MAP STATUS BERKAS (opsional)
+const mapStatusBerkas = (stage: number) => {
+	if (stage === 1) return "Baru";
+	if (stage > 1) return `Perbaikan ke ${stage - 1}`;
+	return "Baru";
+};
+
+// 🟦 MAP STATUS (API: PROCESSING, COMPLETED, REJECTED, etc)
+const mapStatus = (status: string) => {
+	switch (status) {
+		case "PROCESSING":
+			return "Proses";
+		case "COMPLETED":
+			return "Selesai";
+		case "REJECTED":
+			return "Ditolak";
+		default:
+			return status;
+	}
+};
+
+// 🟦 FORMAT TANGGAL
+const formatDate = (iso: string) => {
+	const d = new Date(iso);
+	return d.toLocaleDateString("id-ID", {
+		day: "2-digit",
+		month: "long",
+		year: "numeric",
+	});
+};
+
+// 🟦 LOAD DATA DARI API
+onMounted(async () => {
+	try {
+		loading.value = true;
+		const res = await getApplications();
+
+		allData.value = res.map((item) => ({
+			id: item.applicationNumber,
+			layanan: item.applicationName,
+			tanggal: formatDate(item.applicationDate),
+			statusBerkas: mapStatusBerkas(item.currentStageNumber),
+			status: mapStatus(item.status),
+			raw: item, // untuk drawer
+		}));
+	} catch (err) {
+		console.error(err);
+	} finally {
+		loading.value = false;
+	}
+});
+
+// FILTERING
 const filteredData = computed(() => {
 	return allData.value.filter((item) => item.layanan.toLowerCase().includes(search.value.toLowerCase()));
 });
 
+// PAGINATION
 const paginatedData = computed(() => {
 	const start = (page.value - 1) * perPage;
 	return filteredData.value.slice(start, start + perPage);
 });
 
-const handlePageChange = (newPage: number) => {
-	page.value = newPage;
-};
+// TOTAL
+const total = computed(() => filteredData.value.length);
 
+// COLOR HELPER
 const statusColor = (status: string) => {
 	const s = status.toLowerCase();
 
 	if (s.includes("baru")) return "text-blue-500";
-	if (s.includes("diproses")) return "text-blue-500";
-	if (s.includes("proses")) return "text-blue-500"; // jika kamu pakai “Proses”
+	if (s.includes("proses")) return "text-blue-500";
 	if (s.includes("perbaikan")) return "text-yellow-500";
-	if (s.includes("diperbaiki")) return "text-yellow-500";
 	if (s.includes("ditolak")) return "text-red-500";
 	if (s.includes("selesai")) return "text-green-500";
 
@@ -63,6 +96,10 @@ const statusColor = (status: string) => {
 };
 
 const drawerRef = ref();
+
+const handlePageChange = (newPage: number) => {
+	page.value = newPage;
+};
 </script>
 
 <template>

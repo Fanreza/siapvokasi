@@ -1,35 +1,134 @@
 <script setup lang="ts">
-import { reactive, ref } from "vue";
-import { Icon } from "#components";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
+import { reactive, ref, onMounted } from "vue";
+import { useAuthStore } from "~/stores/auth";
+import { updateProfileService, changePasswordService, uploadAvatarService } from "~/services/profile.services";
+import { toast } from "vue-sonner";
 
 definePageMeta({
 	layout: "user",
 	middleware: "user",
 });
 
+const auth = useAuthStore();
 const isEditing = ref(false);
 
+// FORM DATA (reactive)
 const user = reactive({
-	name: "Sean Andrian",
-	email: "sean@gmail.com",
-	password: "********",
-	instansi: "Kemnaker",
-	namaLengkap: "Sean Andrian",
-	provinsi: "Sulawesi Selatan",
-	kota: "Makassar",
-	kecamatan: "Makassar",
-	alamat: "Jln Merdeka",
-	noTelp: "0812191919",
+	name: "",
+	email: "",
+	instansi: "",
+	namaLengkap: "",
+	provinsi: "",
+	kota: "",
+	kecamatan: "",
+	alamat: "",
+	noTelp: "",
+	password: "",
 });
 
+// Load data dari auth store ketika page masuk
+onMounted(() => {
+	if (auth.user) {
+		user.name = auth.user.name;
+		user.email = auth.user.email;
+
+		user.instansi = auth.user.instanceName ?? "";
+		user.namaLengkap = auth.user.name;
+		user.provinsi = auth.user.province ?? "";
+		user.kota = auth.user.district ?? "";
+		user.kecamatan = auth.user.subDistrict ?? "";
+		user.alamat = auth.user.address ?? "";
+		user.noTelp = auth.user.phone ?? "";
+		user.password = "";
+	}
+});
+
+// toggle edit / cancel
 const toggleEdit = () => (isEditing.value = !isEditing.value);
 
-const saveProfile = () => {
-	// TODO: Simpan ke API
-	isEditing.value = false;
+// SAVE TO BACKEND
+const saveProfile = async () => {
+	try {
+		const payload = {
+			name: user.namaLengkap,
+			email: user.email,
+			instanceName: user.instansi,
+			province: user.provinsi,
+			district: user.kota,
+			subDistrict: user.kecamatan,
+			address: user.alamat,
+			phone: user.noTelp,
+			password: user.password ? user.password : undefined,
+		};
+
+		await updateProfileService(payload);
+
+		// refresh store
+		await auth.refreshUser();
+
+		toast.success("Profil berhasil diperbarui!");
+
+		isEditing.value = false;
+	} catch (err: any) {}
+};
+
+const passwordForm = reactive({
+	oldPassword: "",
+	newPassword: "",
+});
+
+const changePassword = async () => {
+	if (!passwordForm.oldPassword || !passwordForm.newPassword) {
+		return toast.error("Password lama dan baru wajib diisi");
+	}
+
+	if (passwordForm.oldPassword === passwordForm.newPassword) {
+		return toast.error("Password baru tidak boleh sama dengan password lama");
+	}
+
+	try {
+		await changePasswordService({
+			oldPassword: passwordForm.oldPassword,
+			newPassword: passwordForm.newPassword,
+		});
+
+		toast.success("Password berhasil diperbarui");
+
+		passwordForm.oldPassword = "";
+		passwordForm.newPassword = "";
+	} catch (err: any) {
+		toast.error(err?.data?.message || "Gagal memperbarui password");
+	}
+};
+
+const avatarPreview = ref<string | null>(null);
+const avatarFile = ref<File | null>(null);
+
+const handleAvatarSelect = (e: Event) => {
+	const target = e.target as HTMLInputElement;
+	if (!target.files?.length) return;
+
+	const file = target.files[0];
+	avatarFile.value = file!;
+	avatarPreview.value = URL.createObjectURL(file!);
+};
+
+const uploadAvatar = async () => {
+	if (!avatarFile.value) {
+		toast.warning("Silakan pilih file terlebih dahulu.");
+		return;
+	}
+
+	try {
+		await uploadAvatarService(avatarFile.value);
+
+		toast.success("Avatar berhasil diperbarui!");
+
+		// Refresh user data
+		await auth.refreshUser();
+	} catch (err: any) {
+		toast.error(err?.data?.message || "Gagal meng-upload avatar");
+	}
 };
 </script>
 
@@ -38,7 +137,22 @@ const saveProfile = () => {
 		<!-- HEADER -->
 		<div class="flex items-start justify-between mb-6">
 			<div>
-				<h2 class="text-xl font-semibold text-gray-800">{{ user.name }}</h2>
+				<!-- AVATAR -->
+				<div class="flex flex-col items-center mb-6">
+					<div class="relative">
+						<img :src="avatarPreview || auth.user?.avatar || '/images/default-avatar.png'" class="w-28 h-28 rounded-full object-cover border shadow" />
+
+						<label class="absolute bottom-1 right-1 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center cursor-pointer shadow-md hover:bg-blue-700 transition" title="Ubah Foto">
+							<Icon name="lucide:camera" class="w-5 h-5" />
+							<input type="file" class="hidden" accept="image/*" @change="handleAvatarSelect" />
+						</label>
+					</div>
+
+					<!-- Upload button muncul hanya setelah file dipilih -->
+					<Button v-if="avatarFile" class="mt-4 bg-blue-600 text-white" @click="uploadAvatar"> Upload Avatar </Button>
+				</div>
+
+				<h2 class="text-xl font-semibold text-gray-800">{{ user.namaLengkap }}</h2>
 				<div class="text-sm text-gray-500 flex items-center gap-2 mt-2">
 					<Icon name="mail" class="w-4 h-4 opacity-70" />
 					<span>{{ user.email }}</span>
@@ -46,11 +160,11 @@ const saveProfile = () => {
 
 				<div class="text-sm text-gray-400 flex items-center gap-2 mt-2">
 					<Icon name="lock" class="w-4 h-4 opacity-70" />
-					<span>{{ user.password }}</span>
+					<span>********</span>
 				</div>
 			</div>
 
-			<!-- BUTTON GROUP (edit or save/cancel) -->
+			<!-- BUTTON ACTION -->
 			<div class="flex items-center gap-3">
 				<Button v-if="!isEditing" size="sm" class="bg-blue-500 hover:bg-blue-600 text-white" @click="toggleEdit"> Edit Profil </Button>
 
@@ -106,15 +220,24 @@ const saveProfile = () => {
 		<hr class="border-gray-200 my-6" />
 
 		<!-- FORM SECTION (BAWAH) -->
-		<div class="grid grid-cols-1 gap-6">
-			<div>
-				<label class="text-sm text-gray-600 mb-2 block">Email</label>
-				<Input v-model="user.email" :readonly="!isEditing" class="bg-gray-50" />
+		<!-- CHANGE PASSWORD SECTION -->
+		<div class="bg-gray-50 p-6 rounded-lg mt-8 border border-gray-200">
+			<h3 class="text-lg font-semibold text-gray-800 mb-4">Ganti Password</h3>
+
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+				<div>
+					<label class="text-sm text-gray-600 mb-2 block">Password Lama</label>
+					<Input v-model="passwordForm.oldPassword" type="password" class="bg-white" />
+				</div>
+
+				<div>
+					<label class="text-sm text-gray-600 mb-2 block">Password Baru</label>
+					<Input v-model="passwordForm.newPassword" type="password" class="bg-white" />
+				</div>
 			</div>
 
-			<div>
-				<label class="text-sm text-gray-600 mb-2 block">Password</label>
-				<Input v-model="user.password" type="password" :readonly="!isEditing" class="bg-gray-50" />
+			<div class="flex justify-end mt-6">
+				<Button class="bg-blue-600 text-white" @click="changePassword">Update Password</Button>
 			</div>
 		</div>
 	</div>

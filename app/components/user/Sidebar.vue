@@ -30,7 +30,7 @@ const logout = async () => {
 
 			<UserSidebarMenuItem icon="user" label="Profil" to="/user/profile" />
 
-			<UserSidebarMenuItem icon="log-out" label="Logout" to="/logout" @click="logout" />
+			<UserSidebarMenuItem icon="log-out" label="Logout" @click="logout" />
 		</nav>
 	</aside>
 </template>

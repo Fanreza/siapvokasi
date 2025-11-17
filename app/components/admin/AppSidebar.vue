@@ -36,10 +36,7 @@ const navItems = [
 	{
 		label: "Data Pengusul",
 		icon: Users,
-		children: [
-			{ label: "Data User", to: "/admin/data/user" },
-			{ label: "Data Lembaga", to: "/admin/data/lembaga" },
-		],
+		children: [{ label: "Data User", to: "/admin/user" }],
 	},
 ];
 </script>

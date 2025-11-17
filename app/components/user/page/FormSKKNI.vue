@@ -1,32 +1,76 @@
 <script setup lang="ts">
+import { reactive, ref, computed } from "vue";
+import { useRouter } from "vue-router";
 import { toast } from "vue-sonner";
+import { createApplication } from "~/services/application.services";
+import type { ApplicationRequest } from "~/models/application.model";
+
+const props = defineProps<{
+	serviceId: number;
+}>();
 
 const emit = defineEmits<{
 	(e: "previous"): void;
-	(e: "submit", payload: any): void;
+	(e: "next"): void;
 }>();
+
+const router = useRouter();
+const loading = ref(false);
 
 const form = reactive({
 	namaBerkas: "",
 	nomorSurat: "",
-	namaInstansi: "Kemnaker",
+	namaInstansi: "",
 	namaLengkap: "",
-	provinsi: "Sulawesi Selatan",
-	kota: "Makassar",
-	kecamatan: "Makassar",
+	provinsi: "",
+	kota: "",
+	kecamatan: "",
 	alamat: "",
-	noTelp: "0812191919",
+	noTelp: "",
 	suratPermohonan: "",
 	dokumen: "",
 	lainnya: "",
+	email: "",
 });
 
-const handleSubmit = () => {
+// 🔥 Payload reactive yang langsung mengikuti form
+const payload = computed<ApplicationRequest>(() => ({
+	applicationName: form.namaBerkas || "Pengajuan CLSP",
+	applicationNumber: form.nomorSurat || null,
+	applicationDate: new Date().toISOString(),
+
+	applicantName: form.namaLengkap,
+	applicantEmail: form.email, // bisa isi user.email dari Pinia
+	applicantPhone: form.noTelp,
+	applicantProvince: form.provinsi,
+	applicantDistrict: form.kota,
+	applicantSubDistrict: form.kecamatan,
+	applicantAddress: form.alamat,
+
+	requestLetterDocument: form.suratPermohonan,
+	mainDocument: form.dokumen,
+	attachmentDocument: form.lainnya,
+
+	serviceId: props.serviceId,
+}));
+
+const handleSubmit = async () => {
 	if (!form.suratPermohonan || !form.dokumen || !form.lainnya) {
-		toast.error("Mohon lengkapi semua field wajib (Surat Permohonan, Dokumen, Lainnya).");
+		toast.error("Mohon lengkapi semua berkas wajib.");
 		return;
 	}
-	emit("submit", { service: "skkni", ...form });
+
+	loading.value = true;
+
+	try {
+		await createApplication(payload.value);
+		toast.success("Pengajuan berhasil dikirim!");
+		emit("next");
+	} catch (err: any) {
+		console.error(err);
+	} finally {
+		loading.value = false;
+	}
 };
 </script>
 
@@ -81,35 +125,40 @@ const handleSubmit = () => {
 				<Input v-model="form.noTelp" placeholder="0812xxxx" class="bg-gray-50" />
 			</div>
 
+			<div>
+				<label class="text-sm text-gray-600">Email</label>
+				<Input v-model="form.email" type="email" placeholder="example@mail.com" class="bg-gray-50" />
+			</div>
+
 			<div></div>
-			<!-- empty cell for spacing alignment -->
 		</div>
 
 		<!-- Links -->
 		<div class="space-y-4">
 			<div>
 				<label class="text-sm text-gray-600 flex items-center justify-between"> Surat Permohonan <Badge class="ml-2">Wajib</Badge> </label>
-				<Input v-model="form.suratPermohonan" placeholder="Masukkan Link Google Drive" class="bg-gray-50" />
+				<Input v-model="form.suratPermohonan" placeholder="Link Google Drive" class="bg-gray-50" />
 			</div>
 
 			<div>
 				<label class="text-sm text-gray-600 flex items-center justify-between"> Dokumen <Badge class="ml-2">Wajib</Badge> </label>
-				<Input v-model="form.dokumen" placeholder="Masukkan Link Google Drive" class="bg-gray-50" />
+				<Input v-model="form.dokumen" placeholder="Link Google Drive" class="bg-gray-50" />
 			</div>
 
 			<div>
 				<label class="text-sm text-gray-600 flex items-center justify-between"> Lainnya <Badge class="ml-2">Wajib</Badge> </label>
-				<Input v-model="form.lainnya" placeholder="Masukkan Link Google Drive" class="bg-gray-50" />
+				<Input v-model="form.lainnya" placeholder="Link Google Drive" class="bg-gray-50" />
 			</div>
 
-			<div class="p-4 bg-yellow-50 rounded-md text-sm text-yellow-800">Pastikan Link Google Drive yang dilampirkan benar dan Akses untuk berbagi/lihatnya untuk dapat dilihat.</div>
+			<div class="p-4 bg-yellow-50 rounded-md text-sm text-yellow-800">Pastikan Link Google Drive yang dilampirkan benar dan aksesnya publik.</div>
 		</div>
 
 		<div class="flex justify-between pt-8">
 			<Button @click="$emit('previous')" variant="secondary" class="px-6">Sebelumnya</Button>
-			<div class="flex gap-3">
-				<Button @click="handleSubmit" class="bg-blue-500 text-white px-6">Ajukan</Button>
-			</div>
+
+			<Button @click="handleSubmit" :disabled="loading" class="bg-blue-500 text-white px-6">
+				{{ loading ? "Memproses..." : "Ajukan" }}
+			</Button>
 		</div>
 	</div>
 </template>

@@ -1,89 +1,103 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
-import { useRoute } from "vue-router";
-
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-
+import { ref } from "vue";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
+import { getApplicationDetail, getApplicationLogs } from "~/services/application.services";
+
+// SHEET
 const open = ref(false);
 
-// dialog log
+// LOG POPUP
 const isOpen = ref(false);
 const selectedStageName = ref("");
 const selectedStageLogs = ref<any[]>([]);
 
-// to open log popup
-const openLog = (name: string, stage: any) => {
+const openLog = (name: string, stageLogs: any[]) => {
 	selectedStageName.value = name;
-	selectedStageLogs.value = stage.logs || [];
+	selectedStageLogs.value = stageLogs || [];
 	isOpen.value = true;
 };
 
-// > ========= DATA ========== <
-const route = useRoute();
-const ticketNumber = ref("");
-const trackingData = ref<any>(null);
+// STATE DATA
+const detail = ref<any>(null);
+const logs = ref<any[]>([]);
 
-// DUMMY SAMPLE (ganti dari API kalau perlu)
-const sampleData = {
-	ticketId: "IDBRKS0001",
-	serviceType: "SKKNI",
-	submissionName: "Sean",
-	handlerName: "Sean",
-	institution: "Kemnaker",
-	address: "Jln Merdeka",
-	letterDate: "12/02/2023",
-	status: "DITOLAK",
-	documents: [
-		{ name: "Surat Permohonan", status: "OK" },
-		{ name: "Dokumen", status: "OK" },
-		{ name: "Lampiran", status: "OK" },
-	],
-	timeline: [
-		{
-			step: "1",
-			stage1: {
-				logs: [{ date: "7/10/2025", status: "Selesai" }],
-			},
-			stage2: {
-				logs: [{ date: "7/10/2025", status: "Perbaikan" }],
-			},
-			stage3: {
-				logs: [{ date: "7/10/2025", status: "Ditolak" }],
-			},
-		},
-	],
-};
+// info kiri
+const leftInfo = ref<any[]>([]);
 
-const leftInfo = ref([
-	{ label: "Jenis Layanan", value: sampleData.serviceType },
-	{ label: "Nama Pengajuan", value: sampleData.submissionName },
-	{ label: "Nama Pengusul", value: sampleData.handlerName },
-	{ label: "Nama Instansi", value: sampleData.institution },
-	{ label: "Alamat", value: sampleData.address },
-	{ label: "Tanggal Surat", value: sampleData.letterDate },
-]);
+// timeline (dibangun dari logs)
+const timeline = ref<any[]>([]);
 
-const handleTracking = () => {
-	trackingData.value = sampleData;
-};
-
-// warna status logs
+// utility warna
 const getStageClass = (status: string) => {
 	if (!status) return "bg-gray-100 text-gray-600";
-	if (["Diproses"].includes(status)) return "bg-blue-100 text-blue-700";
-	if (["Diperbaiki", "Perbaikan"].includes(status)) return "bg-yellow-100 text-yellow-700";
-	if (["Ditolak"].includes(status)) return "bg-red-100 text-red-700";
-	if (["Selesai"].includes(status)) return "bg-green-100 text-green-700";
+	status = status.toLowerCase();
+
+	if (["processing"].includes(status)) return "bg-blue-100 text-blue-700";
+	if (["perbaikan", "diperbaiki", "revision"].includes(status)) return "bg-yellow-100 text-yellow-700";
+	if (["rejected", "ditolak"].includes(status)) return "bg-red-100 text-red-700";
+	if (["completed", "selesai"].includes(status)) return "bg-green-100 text-green-700";
+
 	return "bg-gray-100 text-gray-700";
 };
 
-// Method untuk dipanggil dari luar
-const openSheet = (item: any) => {
-	ticketNumber.value = item?.id || "";
-	trackingData.value = sampleData; // nanti replace API fetch
+// ✨ MAPKAN LOGS → TIMELINE TABLE
+const buildTimeline = () => {
+	// group logs by stageNumber
+	const grouped: Record<number, any[]> = {};
+
+	for (const lg of logs.value) {
+		if (!grouped[lg.stageNumber]) grouped[lg.stageNumber] = [];
+		grouped[lg.stageNumber].push({
+			date: new Date(lg.createdAt).toLocaleString("id-ID"),
+			status: lg.status,
+			note: lg.note,
+		});
+	}
+
+	// create timeline array
+	timeline.value = [
+		{
+			step: detail.value.currentStageNumber,
+			stage1: grouped[1] ? { logs: grouped[1] } : null,
+			stage2: grouped[2] ? { logs: grouped[2] } : null,
+			stage3: grouped[3] ? { logs: grouped[3] } : null,
+			stage4: grouped[4] ? { logs: grouped[4] } : null,
+		},
+	];
+};
+
+// ✨ MAPKAN DETAIL → LEFT INFO PANEL
+const buildLeftInfo = () => {
+	leftInfo.value = [
+		{ label: "Jenis Layanan", value: detail.value.service?.name },
+		{ label: "Nama Pengajuan", value: detail.value.applicationName },
+		{ label: "Nama Pengusul", value: detail.value.applicantName },
+		{ label: "Nama Instansi", value: detail.value.institution || "-" },
+		{ label: "Alamat", value: detail.value.applicantAddress },
+		{
+			label: "Tanggal Surat",
+			value: new Date(detail.value.applicationDate).toLocaleDateString("id-ID"),
+		},
+	];
+};
+
+// ✨ METHOD PENTING: DIPANGGIL DARI LIST
+const openSheet = async (item: any) => {
 	open.value = true;
+
+	const applicationId = Number(item.raw.id); // dari table row mapping
+
+	// Ambil detail
+	detail.value = await getApplicationDetail(applicationId);
+
+	// Ambil logs
+	logs.value = await getApplicationLogs(applicationId);
+
+	// build UI internal
+	buildLeftInfo();
+	buildTimeline();
 };
 
 defineExpose({ openSheet });
@@ -92,129 +106,103 @@ defineExpose({ openSheet });
 <template>
 	<Sheet v-model:open="open">
 		<SheetContent side="right" class="w-full sm:max-w-5xl h-full overflow-y-auto p-0">
-			<!-- BODY -->
-			<div class="p-8 space-y-10">
+			<div v-if="detail" class="p-8 space-y-10">
 				<!-- Ticket -->
-				<div v-if="trackingData" class="space-y-6">
-					<div class="flex items-center gap-2 pb-4 border-b">
-						<span class="text-blue-600 font-bold text-lg">{{ trackingData.ticketId }}</span>
+				<div class="flex items-center gap-2 pb-4 border-b">
+					<span class="text-blue-600 font-bold text-lg">{{ detail.applicationNumber }}</span>
+				</div>
+
+				<div class="grid md:grid-cols-2 gap-6">
+					<!-- LEFT INFO -->
+					<div class="space-y-4">
+						<div v-for="info in leftInfo" :key="info.label" class="flex justify-between py-3 border-b border-gray-100">
+							<span class="text-gray-600 text-sm">{{ info.label }}</span>
+							<span class="text-gray-900 font-semibold text-sm">{{ info.value }}</span>
+						</div>
 					</div>
 
-					<!-- INFO GRID -->
-					<div class="grid md:grid-cols-2 gap-6">
-						<!-- LEFT SIDE -->
-						<div class="space-y-4">
-							<div v-for="info in leftInfo" :key="info.label" class="flex justify-between py-3 border-b border-gray-100">
-								<span class="text-gray-600 text-sm">{{ info.label }}</span>
-								<span class="text-gray-900 font-semibold text-sm">{{ info.value }}</span>
+					<!-- RIGHT STATUS -->
+					<div class="bg-gray-50 rounded-xl p-6">
+						<div class="text-center mb-6">
+							<h3 class="text-gray-700 font-semibold mb-2">Status Berkas</h3>
+
+							<div class="px-4 py-2 rounded-lg font-bold text-sm" :class="getStageClass(detail.status)">
+								{{ detail.status }}
 							</div>
 						</div>
 
-						<!-- RIGHT SIDE -->
-						<div class="bg-gray-50 rounded-xl p-6">
-							<div class="text-center mb-6">
-								<h3 class="text-gray-700 font-semibold mb-2">Status Berkas</h3>
-								<div class="px-4 py-2 bg-red-100 text-red-600 rounded-lg font-bold text-sm">
-									{{ trackingData.status }}
+						<h4 class="text-gray-700 font-semibold text-sm mb-3">Daftar Berkas</h4>
+
+						<div class="space-y-3">
+							<div class="flex items-center justify-between p-3 bg-white rounded-lg">
+								<div class="flex items-center gap-3">
+									<div class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
+									<span class="text-gray-700 text-sm">Surat Permohonan</span>
 								</div>
+								<span class="px-3 py-1 rounded-full text-xs bg-green-100 text-green-600">ADA</span>
 							</div>
 
-							<h4 class="text-gray-700 font-semibold text-sm mb-3">Daftar Berkas</h4>
-							<div class="space-y-3">
-								<div v-for="(doc, index) in trackingData.documents" :key="index" class="flex items-center justify-between p-3 bg-white rounded-lg">
-									<div class="flex items-center gap-3">
-										<div class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
-											{{ index + 1 }}
+							<div class="flex items-center justify-between p-3 bg-white rounded-lg">
+								<div class="flex items-center gap-3">
+									<div class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
+									<span class="text-gray-700 text-sm">Dokumen Utama</span>
+								</div>
+								<span class="px-3 py-1 rounded-full text-xs bg-green-100 text-green-600">ADA</span>
+							</div>
+
+							<div class="flex items-center justify-between p-3 bg-white rounded-lg">
+								<div class="flex items-center gap-3">
+									<div class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
+									<span class="text-gray-700 text-sm">Lampiran</span>
+								</div>
+								<span class="px-3 py-1 rounded-full text-xs bg-green-100 text-green-600">ADA</span>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- TIMELINE -->
+				<div class="mt-8">
+					<h3 class="text-gray-900 font-bold mb-6">Posisi Berkas</h3>
+
+					<div class="overflow-x-auto">
+						<table class="w-full">
+							<thead>
+								<tr class="border-b">
+									<th class="text-left py-3 px-4 text-sm">Ajuan Ke</th>
+									<th class="text-left py-3 px-4 text-sm">Tahap 1</th>
+									<th class="text-left py-3 px-4 text-sm">Tahap 2</th>
+									<th class="text-left py-3 px-4 text-sm">Tahap 3</th>
+									<th class="text-left py-3 px-4 text-sm">Tahap 4</th>
+								</tr>
+							</thead>
+
+							<tbody>
+								<tr v-for="row in timeline" :key="row.step" class="border-b">
+									<td class="py-4 px-4 font-semibold">{{ row.step }}</td>
+
+									<!-- GENERATE 4 TAHAP OTOMATIS -->
+									<td v-for="n in 4" :key="n" class="py-4 px-4">
+										<div v-if="row['stage' + n]">
+											<!-- Ambil log terakhir -->
+											<span class="px-3 py-1 rounded text-xs font-semibold block" :class="getStageClass(row['stage' + n].logs.at(-1).status)">
+												{{ row["stage" + n].logs.at(-1).date }} <br />
+												{{ row["stage" + n].logs.at(-1).status }}
+											</span>
+
+											<button @click="openLog('Tahap ' + n, row['stage' + n].logs)" class="mt-2 px-3 py-1 bg-blue-600 text-white text-xs rounded">Lihat Log</button>
 										</div>
-										<span class="text-gray-700 text-sm">{{ doc.name }}</span>
-									</div>
-
-									<span :class="doc.status === 'OK' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'" class="px-3 py-1 rounded-full text-xs font-semibold">
-										{{ doc.status }}
-									</span>
-								</div>
-							</div>
-						</div>
-					</div>
-
-					<!-- TIMELINE -->
-					<div class="mt-8">
-						<h3 class="text-gray-900 font-bold mb-6">Posisi Berkas</h3>
-
-						<div class="overflow-x-auto">
-							<table class="w-full">
-								<thead>
-									<tr class="border-b">
-										<th class="text-left py-3 px-4 text-sm">Ajuan Ke</th>
-										<th class="text-left py-3 px-4 text-sm">Tahap 1</th>
-										<th class="text-left py-3 px-4 text-sm">Tahap 2</th>
-										<th class="text-left py-3 px-4 text-sm">Tahap 3</th>
-										<th class="text-left py-3 px-4 text-sm">Tahap 4</th>
-									</tr>
-								</thead>
-
-								<tbody>
-									<tr v-for="(row, index) in trackingData.timeline" :key="index" class="border-b">
-										<td class="py-4 px-4">{{ row.step }}</td>
-
-										<!-- Tahap 1 -->
-										<td class="py-4 px-4">
-											<div v-if="row.stage1" class="flex flex-col gap-2">
-												<span class="px-3 py-1 rounded text-xs font-semibold" :class="getStageClass(row.stage1.logs.at(-1).status)">
-													{{ row.stage1.logs.at(-1).date }} <br />
-													{{ row.stage1.logs.at(-1).status }}
-												</span>
-
-												<button @click="openLog('Tahap 1', row.stage1)" class="px-3 py-1 bg-blue-600 text-white text-xs rounded">Lihat Log</button>
-											</div>
-										</td>
-
-										<!-- Tahap 2 -->
-										<td class="py-4 px-4">
-											<div v-if="row.stage2" class="flex flex-col gap-2">
-												<span class="px-3 py-1 rounded text-xs font-semibold" :class="getStageClass(row.stage2.logs.at(-1).status)">
-													{{ row.stage2.logs.at(-1).date }} <br />
-													{{ row.stage2.logs.at(-1).status }}
-												</span>
-
-												<button @click="openLog('Tahap 2', row.stage2)" class="px-3 py-1 bg-blue-600 text-white text-xs rounded">Lihat Log</button>
-											</div>
-										</td>
-
-										<!-- Tahap 3 -->
-										<td class="py-4 px-4">
-											<div v-if="row.stage3" class="flex flex-col gap-2">
-												<span class="px-3 py-1 rounded text-xs font-semibold" :class="getStageClass(row.stage3.logs.at(-1).status)">
-													{{ row.stage3.logs.at(-1).date }} <br />
-													{{ row.stage3.logs.at(-1).status }}
-												</span>
-
-												<button @click="openLog('Tahap 3', row.stage3)" class="px-3 py-1 bg-blue-600 text-white text-xs rounded">Lihat Log</button>
-											</div>
-										</td>
-
-										<!-- Tahap 4 -->
-										<td class="py-4 px-4">
-											<div v-if="row.stage4" class="flex flex-col gap-2">
-												<span class="px-3 py-1 rounded text-xs font-semibold" :class="getStageClass(row.stage4.logs.at(-1).status)">
-													{{ row.stage4.logs.at(-1).date }} <br />
-													{{ row.stage4.logs.at(-1).status }}
-												</span>
-
-												<button @click="openLog('Tahap 4', row.stage4)" class="px-3 py-1 bg-blue-600 text-white text-xs rounded">Lihat Log</button>
-											</div>
-										</td>
-									</tr>
-								</tbody>
-							</table>
-						</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
 					</div>
 				</div>
 			</div>
 		</SheetContent>
 	</Sheet>
 
-	<!-- LOG DIALOG -->
+	<!-- DIALOG LOG -->
 	<Dialog v-model:open="isOpen">
 		<DialogContent class="max-w-md">
 			<DialogHeader>
@@ -229,6 +217,8 @@ defineExpose({ openSheet });
 					<p class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold" :class="getStageClass(log.status)">
 						{{ log.status }}
 					</p>
+
+					<p class="text-xs text-gray-600 mt-1">{{ log.note }}</p>
 				</div>
 			</div>
 		</DialogContent>

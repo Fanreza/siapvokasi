@@ -36,6 +36,12 @@ export const useAuthStore = defineStore("auth", {
 			}
 		},
 
+		// refresh user
+		async refreshUser() {
+			const res = await getProfileService();
+			this.user = res;
+		},
+
 		async login(payload: LoginRequest) {
 			this.loading = true;
 			try {

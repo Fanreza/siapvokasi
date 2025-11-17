@@ -4,14 +4,14 @@ definePageMeta({
 	middleware: "user",
 });
 
+import { ref, onMounted } from "vue";
+import { getServices } from "~/services/service.services";
+
 const currentTab = ref("pilih-layanan");
 const selectedService = ref("");
 
-const services = [
-	{ value: "skkni", label: "SKKNI" },
-	{ value: "clsp", label: "CLSP" },
-	{ value: "kkni", label: "KKNI" },
-];
+const services = ref<{ value: string; label: string }[]>([]);
+const loadingServices = ref(false);
 
 const goNext = (to?: string) => {
 	if (to) currentTab.value = to;
@@ -23,6 +23,24 @@ const goPrev = () => {
 	if (currentTab.value === "selesai") currentTab.value = "daftar";
 	else if (currentTab.value === "daftar") currentTab.value = "pilih-layanan";
 };
+
+onMounted(async () => {
+	loadingServices.value = true;
+
+	try {
+		const res = await getServices();
+
+		// 🔥 mapping API → Select UI model
+		services.value = res.data.map((s) => ({
+			value: s.id.toString(), // ID service untuk submit
+			label: s.name, // label untuk tampil di dropdown
+		}));
+	} catch (err) {
+		console.error("Failed fetching services:", err);
+	} finally {
+		loadingServices.value = false;
+	}
+});
 </script>
 
 <template>
@@ -58,16 +76,7 @@ const goPrev = () => {
 
 			<!-- CONTENT: Daftar (form) -->
 			<TabsContent value="daftar">
-				<UserPageFormRequest
-					:selectedService="selectedService"
-					@previous="goPrev"
-					@submit="
-						(payload: any) => {
-							console.log('submitted payload', payload);
-						}
-					"
-					@next="goNext"
-				/>
+				<UserPageFormRequest :selectedService="selectedService" @previous="goPrev" @submit="(payload) => console.log(payload)" @next="goNext" />
 			</TabsContent>
 
 			<!-- CONTENT: Selesai -->

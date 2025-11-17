@@ -19,7 +19,7 @@ export default defineNuxtPlugin((nuxtApp) => {
 			// 401 Unauthorized → redirect ke login
 			if (status === 401) {
 				toast.error(message);
-				await navigateTo("/admin/login");
+				await navigateTo("/login");
 				return;
 			}
 

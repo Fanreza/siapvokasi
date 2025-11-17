@@ -89,13 +89,8 @@ const submit = async () => {
 					</div>
 
 					<!-- Remember + Forgot -->
-					<div class="flex items-center justify-between text-sm">
-						<label class="flex items-center gap-2 cursor-pointer">
-							<Checkbox id="remember" />
-							<span class="text-gray-600">Ingat Saya</span>
-						</label>
-
-						<a href="#" class="text-blue-600 font-medium">Lupa Password?</a>
+					<div class="flex items-center justify-end text-sm">
+						<NuxtLink to="/auth/forgot-password" class="text-blue-600 font-medium">Lupa Password?</NuxtLink>
 					</div>
 
 					<!-- Submit Button -->

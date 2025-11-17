@@ -1,19 +1,19 @@
 <script setup lang="ts">
 import { reactive, ref } from "vue";
-import { registerService } from "~/services/auth.services";
+import { resetPasswordService } from "~/services/auth.services";
 import { toast } from "vue-sonner";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 
 definePageMeta({
 	layout: false,
 });
 
 const router = useRouter();
+const route = useRoute();
 const loading = ref(false);
 
 const form = reactive({
-	name: "",
-	email: "",
+	token: "",
 	password: "",
 	passwordConfirmation: "",
 });
@@ -21,20 +21,10 @@ const form = reactive({
 const showSuccess = ref(false);
 
 const submit = async () => {
-	if (!form.name || !form.email || !form.password || !form.passwordConfirmation) {
-		toast.error("Semua field wajib diisi");
-		return;
-	}
-
-	if (form.password !== form.passwordConfirmation) {
-		toast.error("Password dan konfirmasi tidak sama");
-		return;
-	}
-
 	loading.value = true;
 	try {
-		await registerService(form);
-		toast.success("Registrasi berhasil!");
+		await resetPasswordService(form);
+		toast.success("Permintaan reset password berhasil dikirim!");
 		showSuccess.value = true;
 	} catch (err: any) {
 		console.error(err);
@@ -67,20 +57,7 @@ const submit = async () => {
 			<!-- FORM -->
 			<Card v-if="!showSuccess" class="w-full max-w-3xl mx-auto shadow-none border-none">
 				<CardContent class="space-y-8">
-					<!-- Nama -->
-					<div class="grid gap-2">
-						<Label>Nama</Label>
-						<Input v-model="form.name" placeholder="Masukkan Nama" class="bg-gray-100 border-gray-200" />
-					</div>
-
 					<!-- Email -->
-					<div class="grid gap-2">
-						<Label>Email</Label>
-						<Input v-model="form.email" placeholder="Masukkan Email" class="bg-gray-100 border-gray-200" />
-					</div>
-
-					<hr class="border-gray-200" />
-
 					<!-- Password -->
 					<div class="grid gap-2">
 						<Label>Password</Label>
@@ -95,13 +72,13 @@ const submit = async () => {
 
 					<!-- Submit -->
 					<Button class="w-full bg-blue-600 text-white py-6 text-base rounded-xl hover:bg-blue-700" @click="submit" :disabled="loading">
-						{{ loading ? "Memproses..." : "Daftar" }}
+						{{ loading ? "Memproses..." : "Reset Password" }}
 					</Button>
 				</CardContent>
 			</Card>
 
 			<!-- Success -->
-			<CommonSuccessPage v-if="showSuccess" desc="Tunggu Verifikasi dari Admin Melalui Email Anda" title="Berhasil Mendaftarkan Akun Anda" />
+			<CommonSuccessPage v-if="showSuccess" desc="Silahkan Masuk menggunakan Password Baru" title="Berhasil Melakukan Reset Password" route="/login" />
 		</div>
 
 		<!-- RIGHT: ILLUSTRATION -->
