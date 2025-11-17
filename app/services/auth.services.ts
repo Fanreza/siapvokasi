@@ -3,7 +3,7 @@ import type { LoginRequest, LoginResponse, ProfileResponse } from "~/models/auth
 export const loginService = async (payload: LoginRequest) => {
 	const { $apiFetch } = useNuxtApp();
 
-	return await $apiFetch<LoginResponse>("auth/login", {
+	return await $apiFetch<ProfileResponse>("auth/login", {
 		method: "POST",
 		body: payload,
 	});
@@ -12,7 +12,7 @@ export const loginService = async (payload: LoginRequest) => {
 export const getProfileService = async () => {
 	const { $apiFetch } = useNuxtApp();
 
-	return await $apiFetch<ProfileResponse>("auth/profile");
+	return await $apiFetch<ProfileResponse>("profile/me");
 };
 
 export const logoutService = async () => {

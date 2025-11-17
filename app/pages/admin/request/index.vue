@@ -1,7 +1,7 @@
 <script setup lang="ts">
 definePageMeta({
-	middleware: "user",
-	layout: "user",
+	layout: "admin",
+	middleware: "admin",
 });
 
 const page = ref(1);

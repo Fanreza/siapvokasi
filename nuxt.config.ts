@@ -10,6 +10,8 @@ export default defineNuxtConfig({
 	routeRules: {
 		"/admin/**": { ssr: false },
 		"/user/**": { ssr: false },
+		"/login": { ssr: false },
+		"/register": { ssr: false },
 	},
 
 	runtimeConfig: {

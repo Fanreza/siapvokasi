@@ -3,11 +3,10 @@ import { useAuthStore } from "~/stores/auth";
 export default defineNuxtRouteMiddleware(async () => {
 	const auth = useAuthStore();
 
-	if (!auth.user) {
-		await auth.getAuth();
-	}
+	await auth.ensureAuth();
 
-	if (auth.user) {
-		return navigateTo("/admin");
-	}
+	if (!auth.isAuthenticated) return;
+
+	if (auth.isAdmin) return navigateTo("/admin");
+	if (auth.isUser) return navigateTo("/user");
 });

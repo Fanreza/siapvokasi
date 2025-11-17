@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 
 definePageMeta({
 	layout: "user",
+	middleware: "user",
 });
 
 const isEditing = ref(false);

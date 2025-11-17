@@ -6,11 +6,9 @@ export default defineNuxtRouteMiddleware(async () => {
 
 	await auth.ensureAuth();
 
-	if (!auth.isAuthenticated) {
-		return navigateTo("/login");
-	}
+	if (!auth.isAuthenticated) return navigateTo("/login");
 
-	if (!auth.isAdmin) {
+	if (!auth.isSuperadmin) {
 		return useRouter().back();
 	}
 });

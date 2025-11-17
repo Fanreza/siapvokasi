@@ -1,6 +1,7 @@
 <script setup lang="ts">
 definePageMeta({
 	layout: "user",
+	middleware: "user",
 });
 
 const currentTab = ref("pilih-layanan");

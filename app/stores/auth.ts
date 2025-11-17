@@ -10,26 +10,44 @@ export const useAuthStore = defineStore("auth", {
 
 	getters: {
 		isAuthenticated: (state) => !!state.user,
+		roles: (state): string[] => state.user?.roles?.map((r) => r.name) ?? [],
+		isAdmin() {
+			return this.roles.includes("ADMIN") || this.roles.includes("SUPERADMIN");
+		},
+		isSuperadmin() {
+			return this.roles.includes("SUPERADMIN");
+		},
+		isUser() {
+			return this.roles.includes("USER");
+		},
 	},
 
 	actions: {
+		async ensureAuth() {
+			if (!this.user) {
+				console.log(this.user);
+
+				try {
+					const res = await getProfileService();
+					this.user = res;
+				} catch {
+					this.user = null;
+				}
+			}
+		},
+
 		async login(payload: LoginRequest) {
 			this.loading = true;
 			try {
 				const res = await loginService(payload);
-				this.user = res.user;
+
+				console.log(res);
+
+				this.user = res;
+
 				return res;
 			} finally {
 				this.loading = false;
-			}
-		},
-
-		async getAuth() {
-			try {
-				const res = await getProfileService();
-				this.user = res;
-			} catch {
-				this.user = null;
 			}
 		},
 

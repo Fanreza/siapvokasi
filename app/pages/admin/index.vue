@@ -17,8 +17,9 @@
 import { LayoutDashboard } from "lucide-vue-next";
 
 definePageMeta({
-	layout: "user",
-	middleware: "user",
+	layout: "admin",
+	title: "Admin Dashboard",
+	middleware: "admin",
 });
 
 // Data bisa kamu ganti dari API

@@ -11,7 +11,7 @@ const auth = useAuthStore();
 const logout = async () => {
 	try {
 		await auth.logout();
-		navigateTo("/admin/login");
+		navigateTo("/login");
 	} catch (err) {
 		console.error("Logout error:", err);
 	}
