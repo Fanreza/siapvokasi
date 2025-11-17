@@ -34,9 +34,12 @@ const navItems = [
 	{ label: "Pengajuan Perbaikan", to: "/admin/pengajuan/perbaikan", icon: RefreshCcw },
 
 	{
-		label: "Data Pengusul",
+		label: "User",
 		icon: Users,
-		children: [{ label: "Data User", to: "/admin/user" }],
+		children: [
+			{ label: "Data User", to: "/admin/user" },
+			{ label: "Data Role", to: "/admin/role" },
+		],
 	},
 ];
 </script>

@@ -18,7 +18,7 @@ export const listUsersService = async (params: ListUsersParams = {}) => {
 export const getUserByIdService = async (id: number) => {
 	const { $apiFetch } = useNuxtApp();
 
-	return await $apiFetch<UserDetailResponse>(`users/${id}`);
+	return await $apiFetch<User>(`users/${id}`);
 };
 
 /**

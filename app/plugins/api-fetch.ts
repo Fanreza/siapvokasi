@@ -1,4 +1,5 @@
 import { toast } from "vue-sonner";
+import { useAuthStore } from "~/stores/auth";
 
 export default defineNuxtPlugin((nuxtApp) => {
 	const config = useRuntimeConfig();
@@ -19,6 +20,9 @@ export default defineNuxtPlugin((nuxtApp) => {
 			// 401 Unauthorized → redirect ke login
 			if (status === 401) {
 				toast.error(message);
+
+				const authStore = useAuthStore();
+				authStore.clearAuth();
 				await navigateTo("/login");
 				return;
 			}

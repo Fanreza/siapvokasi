@@ -61,5 +61,9 @@ export const useAuthStore = defineStore("auth", {
 			await logoutService();
 			this.user = null;
 		},
+
+		clearAuth() {
+			this.user = null;
+		},
 	},
 });
