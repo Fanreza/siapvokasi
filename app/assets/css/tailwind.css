@@ -144,4 +144,52 @@
 	body {
 		@apply bg-background text-foreground;
 	}
+
+	.tiptap h1 {
+		@apply block text-4xl font-bold mt-4 mb-4;
+	}
+
+	.tiptap h2 {
+		@apply block text-3xl font-bold mt-4 mb-4;
+	}
+
+	.tiptap h3 {
+		@apply block text-2xl font-bold mt-4 mb-4;
+	}
+
+	.tiptap h4 {
+		@apply block text-xl font-bold mt-4 mb-4;
+	}
+
+	.tiptap h5 {
+		@apply block text-lg font-semibold mt-4 mb-4;
+	}
+
+	.tiptap h6 {
+		@apply block text-base font-semibold mt-4 mb-4;
+	}
+
+	.tiptap a:not(.no-underline) {
+		@apply underline text-blue-600;
+	}
+
+	.tiptap a:visited {
+		@apply text-green-600;
+	}
+
+	.tiptap ul {
+		@apply list-disc pl-4;
+	}
+
+	.tiptap ol {
+		@apply list-decimal pl-4;
+	}
+
+	.tiptap pre {
+		@apply block w-full font-mono text-base p-3 bg-gray-200 overflow-x-auto;
+	}
+
+	.tiptap blockquote {
+		@apply border-l-4 border-gray-400 pl-4 italic text-gray-600;
+	}
 }

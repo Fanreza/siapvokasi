@@ -1,8 +1,8 @@
 <script setup lang="ts">
-definePageMeta({
-	middleware: "admin",
-	layout: "admin",
-});
+const props = defineProps<{
+	status: "new" | "fixing" | "completed" | "fixed" | "rejected";
+	stage?: "1" | "2" | "3" | "4";
+}>();
 
 import { ref, computed, watch, onMounted } from "vue";
 import { getApplications } from "~/services/application.services";
@@ -17,11 +17,13 @@ const data = ref<any[]>([]);
 const totalItems = ref(0);
 
 // PARAMS (page, limit, search)
+const stageParams = props.stage;
+
 const params = computed(() => ({
 	page: page.value,
 	limit: perPage.value,
 	search: search.value || undefined, // kalau empty jangan dikirim
-	filter: `status:NEW`,
+	filter: `status:${props.status.toUpperCase()}`,
 }));
 
 // FETCH API

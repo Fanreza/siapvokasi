@@ -12,7 +12,9 @@ export const useAuthStore = defineStore("auth", {
 		isAuthenticated: (state) => !!state.user,
 		roles: (state): string[] => state.user?.roles?.map((r) => r.name) ?? [],
 		isAdmin() {
-			return this.roles.includes("ADMIN") || this.roles.includes("SUPERADMIN");
+			console.log(this.roles);
+
+			return this.roles.some((r) => r.includes("ADMIN"));
 		},
 		isSuperadmin() {
 			return this.roles.includes("SUPERADMIN");

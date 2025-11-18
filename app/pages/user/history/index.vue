@@ -53,7 +53,7 @@ onMounted(async () => {
 		loading.value = true;
 		const res = await getApplications();
 
-		allData.value = res.map((item) => ({
+		allData.value = res.data.map((item) => ({
 			id: item.applicationNumber,
 			layanan: item.applicationName,
 			tanggal: formatDate(item.applicationDate),

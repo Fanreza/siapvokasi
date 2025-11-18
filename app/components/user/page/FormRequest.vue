@@ -30,13 +30,13 @@ const onSubmit = (payload: any) => {
 <template>
 	<div>
 		<!-- SKKNI -->
-		<UserPageFormSKKNI v-if="formType === 'skkni'" @previous="$emit('previous')" @submit="onSubmit" :service-id="serviceId" />
+		<UserPageFormSKKNI v-if="formType" @previous="$emit('previous')" @next="$emit('next')" @submit="onSubmit" :service-id="serviceId" />
 
 		<!-- SKKNK -->
 		<!-- <UserPageFormSKKNK v-else-if="formType === 'skknk'" @previous="$emit('previous')" @submit="onSubmit" /> -->
 
 		<!-- CLSP -->
-		<UserPageFormCLSP v-else-if="formType === 'clsp'" @previous="$emit('previous')" @submit="onSubmit" />
+		<!-- <UserPageFormCLSP v-else-if="formType === 'clsp'" @previous="$emit('previous')" @submit="onSubmit" /> -->
 
 		<!-- Default -->
 		<div v-else class="p-6 text-center text-gray-500">Silakan pilih layanan terlebih dahulu.</div>

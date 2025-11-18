@@ -4,6 +4,7 @@ import { useRouter } from "vue-router";
 import { toast } from "vue-sonner";
 import { createApplication } from "~/services/application.services";
 import type { ApplicationRequest } from "~/models/application.model";
+import { useAuthStore } from "~/stores/auth";
 
 const props = defineProps<{
 	serviceId: number;
@@ -15,22 +16,21 @@ const emit = defineEmits<{
 }>();
 
 const router = useRouter();
+const authStore = useAuthStore();
 const loading = ref(false);
 
 const form = reactive({
 	namaBerkas: "",
 	nomorSurat: "",
 	namaInstansi: "",
-	namaLengkap: "",
-	provinsi: "",
-	kota: "",
-	kecamatan: "",
-	alamat: "",
-	noTelp: "",
+	namaLengkap: authStore.user?.name || "",
+	provinsi: authStore.user?.province || "",
+	kota: authStore.user?.district || "",
+	kecamatan: authStore.user?.subDistrict || "",
+	alamat: authStore.user?.address || "",
+	noTelp: authStore.user?.phone || "",
 	suratPermohonan: "",
-	dokumen: "",
-	lainnya: "",
-	email: "",
+	email: authStore.user?.email || "",
 });
 
 // 🔥 Payload reactive yang langsung mengikuti form
@@ -48,14 +48,12 @@ const payload = computed<ApplicationRequest>(() => ({
 	applicantAddress: form.alamat,
 
 	requestLetterDocument: form.suratPermohonan,
-	mainDocument: form.dokumen,
-	attachmentDocument: form.lainnya,
 
 	serviceId: props.serviceId,
 }));
 
 const handleSubmit = async () => {
-	if (!form.suratPermohonan || !form.dokumen || !form.lainnya) {
+	if (!form.suratPermohonan) {
 		toast.error("Mohon lengkapi semua berkas wajib.");
 		return;
 	}
@@ -138,16 +136,6 @@ const handleSubmit = async () => {
 			<div>
 				<label class="text-sm text-gray-600 flex items-center justify-between"> Surat Permohonan <Badge class="ml-2">Wajib</Badge> </label>
 				<Input v-model="form.suratPermohonan" placeholder="Link Google Drive" class="bg-gray-50" />
-			</div>
-
-			<div>
-				<label class="text-sm text-gray-600 flex items-center justify-between"> Dokumen <Badge class="ml-2">Wajib</Badge> </label>
-				<Input v-model="form.dokumen" placeholder="Link Google Drive" class="bg-gray-50" />
-			</div>
-
-			<div>
-				<label class="text-sm text-gray-600 flex items-center justify-between"> Lainnya <Badge class="ml-2">Wajib</Badge> </label>
-				<Input v-model="form.lainnya" placeholder="Link Google Drive" class="bg-gray-50" />
 			</div>
 
 			<div class="p-4 bg-yellow-50 rounded-md text-sm text-yellow-800">Pastikan Link Google Drive yang dilampirkan benar dan aksesnya publik.</div>

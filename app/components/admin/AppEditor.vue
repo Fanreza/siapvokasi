@@ -36,7 +36,7 @@ onBeforeUnmount(() => editor.value?.destroy());
 
 <template>
 	<!-- Pastikan TiptapProvider & Toolbar kamu terhubung ke editor -->
-	<TiptapProvider :editor="editor">
+	<TiptapProvider :editor="editor" class="tiptap">
 		<TiptapToolbar />
 		<TiptapContent class="border rounded-md p-3 min-h-[200px]" />
 		<TiptapStatusBar show-word-count />

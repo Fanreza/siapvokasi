@@ -12,26 +12,31 @@ const toggleDropdown = (label: string) => {
 const navItems = [
 	{ label: "Dashboard", to: "/admin", icon: Home },
 
-	{
-		label: "Pengajuan Baru",
-		icon: FilePlus,
-		children: [{ label: "Semua Pengajuan", to: "/admin/request" }],
-	},
+	{ label: "Pengajuan Baru", to: "/admin/request/new", icon: FilePlus },
 
 	{
 		label: "Pengajuan Proses",
 		icon: Box,
 		children: [
-			{ label: "Tahap 1", to: "/admin/pengajuan/proses/tahap-1" },
-			{ label: "Tahap 2", to: "/admin/pengajuan/proses/tahap-2" },
-			{ label: "Tahap 3", to: "/admin/pengajuan/proses/tahap-3" },
-			{ label: "Tahap 4", to: "/admin/pengajuan/proses/tahap-4" },
+			{ label: "Tahap 1", to: "/admin/request/tahap-1" },
+			{ label: "Tahap 2", to: "/admin/request/tahap-2" },
+			{ label: "Tahap 3", to: "/admin/request/tahap-3" },
+			{ label: "Tahap 4", to: "/admin/request/tahap-4" },
 		],
 	},
 
-	{ label: "Pengajuan Selesai", to: "/admin/pengajuan/selesai", icon: CheckCircle },
+	{
+		label: "Pengajuan Perbaikan",
+		icon: RefreshCcw,
+		children: [
+			{ label: "Perbaikan", to: "/admin/request/fixing" },
+			{ label: "Diperbaiki", to: "/admin/request/fixed" },
+		],
+	},
 
-	{ label: "Pengajuan Perbaikan", to: "/admin/pengajuan/perbaikan", icon: RefreshCcw },
+	{ label: "Pengajuan Selesai", to: "/admin/request/done", icon: CheckCircle },
+
+	{ label: "Pengajuan Ditolak", to: "/admin/request/rejected", icon: CheckCircle },
 
 	{
 		label: "User",

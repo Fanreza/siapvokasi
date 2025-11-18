@@ -3,8 +3,8 @@
 /** Generic API Response Wrapper */
 export interface ApiResponse<T> {
 	data: T;
-	meta?: ApiMeta;
-	links?: ApiLinks;
+	meta: ApiMeta;
+	links: ApiLinks;
 }
 
 /** Pagination Metadata */
