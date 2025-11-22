@@ -22,7 +22,7 @@
 interface Props {
 	image?: string;
 	title: string;
-	desc: string;
+	desc?: string;
 	route?: string | null;
 }
 

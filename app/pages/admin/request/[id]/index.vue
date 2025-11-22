@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner";
 
+import { useRoute, useRouter } from "vue-router";
+
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { getApplicationDetail, getApplicationLogs, approveApplicationFirst, rejectApplication, approveApplicationNext, requestApplicationFix, toggleRequirementStatus } from "~/services/application.services";
+import getClassStatus from "~/helper/getClassStatus";
+import getTranslateStatus from "~/helper/getTranslateStatus";
+
 definePageMeta({
 	middleware: "admin",
 	layout: "admin",
 });
-
-import { useRoute, useRouter } from "vue-router";
-
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { getApplicationDetail, getApplicationLogs, approveApplicationFirst, rejectApplication, approveApplicationNext, requestApplicationFix } from "~/services/application.services";
 
 type StageLog = {
 	date: string;
@@ -48,18 +50,6 @@ const openLog = (name: string, stageLogs: any[]) => {
 const detail = ref<any>(null);
 const logs = ref<any[]>([]);
 
-// STATUS COLOR
-const getStageClass = (status: string) => {
-	if (!status) return "bg-gray-100 text-gray-600";
-	status = status.toLowerCase();
-
-	if (["processing"].includes(status)) return "bg-blue-100 text-blue-700";
-	if (["perbaikan", "revision", "diperbaiki"].includes(status)) return "bg-yellow-100 text-yellow-700";
-	if (["rejected", "ditolak"].includes(status)) return "bg-red-100 text-red-700";
-	if (["completed", "selesai"].includes(status)) return "bg-green-100 text-green-700";
-	return "bg-gray-100 text-gray-700";
-};
-
 // ✨ LEFT INFO — Langsung computed, tidak butuh function
 const leftInfo = computed(() => {
 	if (!detail.value) return [];
@@ -77,8 +67,6 @@ const leftInfo = computed(() => {
 	];
 });
 
-// ✨ TIMELINE — juga computed langsung
-// ✨ TIMELINE — juga computed langsung
 const timeline = computed<TimelineRow[]>(() => {
 	if (!detail.value || !Array.isArray(logs.value)) return [];
 
@@ -145,6 +133,7 @@ const actionLoading = ref(false);
 const isConfirmOpen = ref(false);
 const confirmType = ref<"approve" | "reject" | null>(null);
 
+// Approve first stage
 const approveFirst = async () => {
 	try {
 		actionLoading.value = true;
@@ -162,6 +151,7 @@ const approveFirst = async () => {
 	}
 };
 
+// Reject first stage
 const rejectFirst = async () => {
 	try {
 		actionLoading.value = true;
@@ -182,6 +172,7 @@ const rejectFirst = async () => {
 const stageAction = ref<"approve" | "fix" | null>(null);
 const stageConfirmOpen = ref(false);
 
+// ON APPROVE STAGE
 const approveStage = async () => {
 	try {
 		actionLoading.value = true;
@@ -198,6 +189,7 @@ const approveStage = async () => {
 	}
 };
 
+// ON FIX STAGE
 const fixStage = async () => {
 	try {
 		actionLoading.value = true;
@@ -214,6 +206,32 @@ const fixStage = async () => {
 		router.back();
 	} finally {
 		actionLoading.value = false;
+	}
+};
+
+// CURRENT STAGE 0 AND ADMIN VERIFY DOCS
+const selectedAction = ref<"approve" | "reject" | null>(null);
+
+// TOGGLE CHECK UNCHECK REQUIREMENTS
+const updatingReq = ref<number | null>(null);
+
+const onToggleRequirement = async (req: any, newValue: boolean) => {
+	try {
+		updatingReq.value = req.id;
+
+		// optimist update
+		req.status = newValue;
+
+		await toggleRequirementStatus(applicationId, req.id, newValue);
+
+		toast.success("Status dokumen diperbarui.");
+	} catch (err) {
+		toast.error("Gagal memperbarui status.");
+
+		// rollback
+		req.status = !newValue;
+	} finally {
+		updatingReq.value = null;
 	}
 };
 </script>
@@ -241,8 +259,8 @@ const fixStage = async () => {
 			<div class="bg-gray-50 rounded-xl p-6 space-y-6">
 				<div class="text-center">
 					<h3 class="text-gray-700 font-semibold mb-2">Status Berkas</h3>
-					<div class="px-4 py-2 rounded-lg font-bold text-sm" :class="getStageClass(detail?.status)">
-						{{ detail?.status }}
+					<div class="px-4 py-2 rounded-lg font-bold text-sm" :class="getClassStatus(detail?.status)">
+						{{ getTranslateStatus(detail?.status) }}
 					</div>
 				</div>
 
@@ -260,34 +278,18 @@ const fixStage = async () => {
 										<a :href="detail?.requestLetterDocument" target="_blank" class="text-blue-500 text-xs underline">Link Berkas</a>
 									</div>
 								</div>
-
-								<!-- Dokumen Utama -->
-								<div class="flex items-center justify-between p-3 bg-white rounded-lg border">
-									<div>
-										<p class="font-medium text-sm">Dokumen Utama</p>
-										<a :href="detail?.mainDocument" target="_blank" class="text-blue-500 text-xs underline">Link Berkas</a>
-									</div>
-								</div>
-
-								<!-- Lampiran -->
-								<div class="flex items-center justify-between p-3 bg-white rounded-lg border">
-									<div>
-										<p class="font-medium text-sm">Lampiran</p>
-										<a :href="detail?.attachmentDocument" target="_blank" class="text-blue-500 text-xs underline">Link Berkas</a>
-									</div>
-								</div>
 							</div>
 						</AccordionContent>
 					</AccordionItem>
 
 					<!-- REQUIREMENTS -->
-					<AccordionItem value="requirements" v-if="detail?.currentStageNumber > 0">
+					<AccordionItem value="requirements">
 						<AccordionTrigger class="font-semibold text-gray-700"> Kelengkapan Dokumen </AccordionTrigger>
 
 						<AccordionContent>
 							<div class="mt-3 space-y-3">
 								<div v-for="(req, index) in detail?.applicationRequirements" :key="req.id" class="flex items-center justify-between p-3 bg-white rounded-lg border">
-									<div>
+									<div class="flex items-center gap-2">
 										<div class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
 											{{ index + 1 }}
 										</div>
@@ -297,7 +299,7 @@ const fixStage = async () => {
 									<!-- switch sesuai -->
 									<div class="flex items-center gap-2">
 										<label class="text-xs text-gray-600">Sesuai</label>
-										<Checkbox :checked="!!req.status" @update:checked="(val: any) => (req.status = val)" />
+										<Checkbox v-model="req.status" :disabled="detail?.currentStageNumber > 0 || updatingReq === req.id" @click="onToggleRequirement(req, $event)" />
 									</div>
 								</div>
 							</div>
@@ -308,7 +310,7 @@ const fixStage = async () => {
 		</div>
 
 		<!-- TIMELINE -->
-		<div class="mt-10" v-if="timeline.length > 0">
+		<div class="mt-10" v-if="timeline.length && detail?.currentStageNumber > 0">
 			<h3 class="text-gray-900 font-bold mb-6">Posisi Berkas</h3>
 
 			<div class="overflow-x-auto">
@@ -326,7 +328,7 @@ const fixStage = async () => {
 						<TableRow v-for="row in timeline" :key="row.step">
 							<TableCell v-for="n in 4" :key="n">
 								<div v-if="row['stage' + n]">
-									<span class="px-3 py-1 rounded text-xs font-semibold block" :class="getStageClass(row['stage' + n].logs.at(-1).status)">
+									<span class="px-3 py-1 rounded text-xs font-semibold block" :class="getClassStatus(row['stage' + n].logs.at(-1).status)">
 										{{ row["stage" + n].logs.at(-1).date }}
 										<br />
 										{{ row["stage" + n].logs.at(-1).status }}
@@ -342,12 +344,12 @@ const fixStage = async () => {
 		</div>
 
 		<!-- ACTIONS for initial stage (currentStageNumber === 0) -->
-		<div v-if="detail?.currentStageNumber === 0" class="mt-6 border-t pt-6">
-			<h3 class="text-gray-900 font-semibold mb-3">Tindakan Admin (Tahap Awal)</h3>
+		<div v-if="detail?.currentStageNumber === 0 && detail?.status === 'NEW'" class="mt-6 border-t pt-6">
+			<h3 class="text-gray-900 font-semibold mb-3">Terima Permohonan</h3>
 
 			<div class="grid grid-cols-1 gap-10">
 				<div>
-					<Label class="text-sm text-gray-600">Surat Balasan (Link)</Label>
+					<Label class="text-sm text-gray-600">Surat Penerimaan</Label>
 					<Input v-model="letterLink" type="text" placeholder="https://drive.google.com/..." class="w-full rounded-md border p-2 bg-white" />
 				</div>
 
@@ -427,6 +429,47 @@ const fixStage = async () => {
 				</div>
 			</div>
 		</div>
+
+		<!-- ACTIONS: muncul hanya jika stage 0 dan status = NEW_DOCUMENTS -->
+		<div v-if="detail?.currentStageNumber === 0 && detail?.status === 'NEW_DOCUMENTS'" class="mt-6 border-t pt-6">
+			<h3 class="text-gray-900 font-semibold mb-3">Verifikasi Berkas</h3>
+
+			<!-- TOGGLE BUTTON -->
+			<div class="flex gap-3 mb-6">
+				<Button :variant="selectedAction === 'approve' ? 'default' : 'secondary'" @click="selectedAction = 'approve'"> Terima </Button>
+
+				<Button :variant="selectedAction === 'reject' ? 'destructive' : 'secondary'" @click="selectedAction = 'reject'"> Tolak </Button>
+			</div>
+
+			<!-- APPROVE FORM -->
+			<div v-if="selectedAction === 'approve'" class="space-y-6">
+				<div>
+					<Label class="text-sm text-gray-600">Lampiran (Link)</Label>
+					<Input v-model="letterLink" type="text" placeholder="https://drive.google.com/..." class="w-full rounded-md border p-2 bg-white" />
+				</div>
+
+				<div>
+					<Label class="text-sm text-gray-600">Catatan Admin</Label>
+					<AdminAppEditor v-model="adminNote" rows="4" placeholder="Catatan untuk pengaju..." class="w-full rounded-md border p-2 bg-white" />
+				</div>
+
+				<div class="flex justify-end">
+					<Button class="px-4 py-2" :disabled="actionLoading || !letterLink || !adminNote" @click="approveFirst()"> Kirim </Button>
+				</div>
+			</div>
+
+			<!-- REJECT FORM -->
+			<div v-if="selectedAction === 'reject'" class="space-y-6">
+				<div>
+					<Label class="text-sm text-gray-600">Catatan Penolakan</Label>
+					<AdminAppEditor v-model="adminNote" rows="4" placeholder="Catatan untuk pengaju..." class="w-full rounded-md border p-2 bg-white" />
+				</div>
+
+				<div class="flex justify-end">
+					<Button variant="destructive" class="px-4 py-2" :disabled="actionLoading || !adminNote" @click="rejectFirst()"> Kirim </Button>
+				</div>
+			</div>
+		</div>
 	</div>
 
 	<!-- LOG DIALOG -->
@@ -441,8 +484,8 @@ const fixStage = async () => {
 				<div v-for="(log, index) in selectedStageLogs" :key="index" class="p-3 border rounded-lg bg-gray-50">
 					<p class="text-sm font-medium">{{ log.date }}</p>
 
-					<p class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold" :class="getStageClass(log.status)">
-						{{ log.status }}
+					<p class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold" :class="getClassStatus(log.status)">
+						{{ getTranslateStatus(log.status) }}
 					</p>
 
 					<!-- <p class="text-xs text-gray-600 mt-1" v-html="log.note"></p> -->

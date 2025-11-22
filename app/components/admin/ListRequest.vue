@@ -1,13 +1,14 @@
 <script setup lang="ts">
+import type { RequestStatusType } from "~/enum/requestStatus.enum";
+import getClassStatus from "~/helper/getClassStatus";
+import getTranslateStatus from "~/helper/getTranslateStatus";
+import { getApplications } from "~/services/application.services";
+
 const props = defineProps<{
-	status: "new" | "fixing" | "completed" | "fixed" | "rejected";
+	status: RequestStatusType;
 	stage?: "1" | "2" | "3" | "4";
 }>();
 
-import { ref, computed, watch, onMounted } from "vue";
-import { getApplications } from "~/services/application.services";
-
-// STATE
 const page = ref(1);
 const perPage = ref(10);
 const search = ref("");
@@ -16,17 +17,15 @@ const loading = ref(false);
 const data = ref<any[]>([]);
 const totalItems = ref(0);
 
-// PARAMS (page, limit, search)
-const stageParams = props.stage;
+const stageParams = props.stage ? `stage:${props.stage}` : undefined;
 
 const params = computed(() => ({
 	page: page.value,
 	limit: perPage.value,
-	search: search.value || undefined, // kalau empty jangan dikirim
-	filter: `status:${props.status.toUpperCase()}`,
+	search: search.value || undefined,
+	filter: `status:${props.status.toUpperCase()}${stageParams ? `&${stageParams}` : ""}`,
 }));
 
-// FETCH API
 const fetchData = async () => {
 	try {
 		loading.value = true;
@@ -42,44 +41,12 @@ const fetchData = async () => {
 	}
 };
 
-// AUTO RELOAD KETIKA PARAMS BERUBAH
 watch(params, fetchData);
 
-// FIRST LOAD
 onMounted(fetchData);
 
-// Navigate ke detail
 const onNavigateDetail = (item: any) => {
 	navigateTo(`/admin/request/${item.id}`);
-};
-
-// utils/statusWarna.ts
-
-const colorStatus: Record<string, string> = {
-	BARU: "bg-blue-100 text-blue-700",
-	SEDANG_DIPROSES: "bg-blue-100 text-blue-700",
-	PERBAIKAN: "bg-yellow-100 text-yellow-700",
-	SUDAH_DIPERBAIKI: "bg-yellow-100 text-yellow-700",
-	DITOLAK: "bg-red-100 text-red-700",
-	SELESAI: "bg-green-200 text-green-800",
-};
-
-const getColorStatus = (status: string) => {
-	if (!status) return "bg-gray-100 text-gray-600";
-	return colorStatus[status] || "bg-gray-100 text-gray-600";
-};
-
-const translateStatus = (status: string): string => {
-	const map: Record<string, string> = {
-		NEW: "BARU",
-		PROCESSING: "SEDANG_DIPROSES",
-		FIXING: "PERBAIKAN",
-		FIXED: "SUDAH_DIPERBAIKI",
-		COMPLETED: "SELESAI",
-		REJECTED: "DITOLAK",
-	};
-
-	return map[status] ?? status;
 };
 </script>
 
@@ -112,10 +79,24 @@ const translateStatus = (status: string): string => {
 			</TableHeader>
 
 			<TableBody>
+				<!-- Loading -->
 				<TableRow v-if="loading">
-					<TableCell colspan="5" class="text-center py-10 text-gray-400"> Mengambil data... </TableCell>
+					<TableCell colspan="6" class="text-center py-10 text-gray-400"> Mengambil data... </TableCell>
 				</TableRow>
 
+				<!-- Empty State -->
+				<TableRow v-if="!loading && data.length === 0">
+					<TableCell colspan="6" class="text-center py-10 text-gray-400">
+						<div class="flex flex-col items-center justify-center gap-2">
+							<div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+								<Icon name="lucide:inbox" class="w-6 h-6 text-gray-400" />
+							</div>
+							<p class="text-sm text-gray-500">Tidak ada data ditemukan</p>
+						</div>
+					</TableCell>
+				</TableRow>
+
+				<!-- Data Rows -->
 				<TableRow v-for="item in data" :key="item.id">
 					<TableCell>{{ item.code }}</TableCell>
 					<TableCell>{{ item.applicationNumber }}</TableCell>
@@ -132,8 +113,8 @@ const translateStatus = (status: string): string => {
 					</TableCell>
 
 					<TableCell>
-						<span :class="getColorStatus(translateStatus(item.status))" class="px-2 py-1 rounded-full text-xs font-medium">
-							{{ translateStatus(item.status).replaceAll("_", " ") }}
+						<span :class="getClassStatus(item.status)" class="px-2 py-1 rounded-full text-xs font-medium">
+							{{ getTranslateStatus(item.status) }}
 						</span>
 					</TableCell>
 

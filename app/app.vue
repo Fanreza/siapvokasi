@@ -28,7 +28,7 @@ useHead({
 
 <template>
 	<Html lang="en">
-		<Toaster richColors :expand="true" />
+		<Toaster richColors :expand="true" position="top-right" />
 
 		<div>
 			<NuxtLayout>

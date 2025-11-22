@@ -1,71 +1,72 @@
+import { ref, computed } from "vue";
 import { defineStore } from "pinia";
+
 import type { AuthUser, LoginRequest } from "~/models/auth.models";
 import { loginService, getProfileService, logoutService } from "~/services/auth.services";
 
-export const useAuthStore = defineStore("auth", {
-	state: () => ({
-		user: null as AuthUser | null,
-		loading: false,
-	}),
+export const useAuthStore = defineStore("auth", () => {
+	const user = ref<AuthUser | null>(null);
+	const loading = ref(false);
 
-	getters: {
-		isAuthenticated: (state) => !!state.user,
-		roles: (state): string[] => state.user?.roles?.map((r) => r.name) ?? [],
-		isAdmin() {
-			console.log(this.roles);
+	const isAuthenticated = computed(() => !!user.value);
+	const roles = computed<string[]>(() => user.value?.roles?.map((r) => r.name) ?? []);
+	const isAdmin = computed(() => roles.value.some((r) => r.includes("ADMIN")));
+	const isSuperadmin = computed(() => roles.value.includes("SUPERADMIN"));
+	const isUser = computed(() => roles.value.some((r) => r.includes("USER")));
 
-			return this.roles.some((r) => r.includes("ADMIN"));
-		},
-		isSuperadmin() {
-			return this.roles.includes("SUPERADMIN");
-		},
-		isUser() {
-			return this.roles.includes("USER");
-		},
-	},
-
-	actions: {
-		async ensureAuth() {
-			if (!this.user) {
-				console.log(this.user);
-
-				try {
-					const res = await getProfileService();
-					this.user = res;
-				} catch {
-					this.user = null;
-				}
-			}
-		},
-
-		// refresh user
-		async refreshUser() {
-			const res = await getProfileService();
-			this.user = res;
-		},
-
-		async login(payload: LoginRequest) {
-			this.loading = true;
+	const ensureAuth = async () => {
+		if (!user.value) {
 			try {
-				const res = await loginService(payload);
-
-				console.log(res);
-
-				this.user = res;
-
-				return res;
-			} finally {
-				this.loading = false;
+				const res = await getProfileService();
+				user.value = res;
+			} catch {
+				user.value = null;
 			}
-		},
+		}
+	};
 
-		async logout() {
-			await logoutService();
-			this.user = null;
-		},
+	const refreshUser = async () => {
+		const res = await getProfileService();
+		user.value = res;
+	};
 
-		clearAuth() {
-			this.user = null;
-		},
-	},
+	const login = async (payload: LoginRequest) => {
+		loading.value = true;
+
+		try {
+			const res = await loginService(payload);
+
+			user.value = res;
+
+			return res;
+		} finally {
+			loading.value = false;
+		}
+	};
+
+	const logout = async () => {
+		await logoutService();
+		clearAuth();
+	};
+
+	const clearAuth = () => {
+		user.value = null;
+	};
+
+	return {
+		user,
+		loading,
+
+		isAuthenticated,
+		roles,
+		isAdmin,
+		isSuperadmin,
+		isUser,
+
+		ensureAuth,
+		refreshUser,
+		login,
+		logout,
+		clearAuth,
+	};
 });

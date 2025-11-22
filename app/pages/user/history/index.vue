@@ -48,7 +48,7 @@ const formatDate = (iso: string) => {
 };
 
 // 🟦 LOAD DATA DARI API
-onMounted(async () => {
+const fetchData = async () => {
 	try {
 		loading.value = true;
 		const res = await getApplications();
@@ -66,6 +66,10 @@ onMounted(async () => {
 	} finally {
 		loading.value = false;
 	}
+};
+
+onMounted(async () => {
+	await fetchData();
 });
 
 // FILTERING
@@ -161,6 +165,6 @@ const handlePageChange = (newPage: number) => {
 		<!-- PAGINATION -->
 		<UserPagination :page="page" :total="filteredData.length" :perPage="perPage" @updatePage="handlePageChange" />
 
-		<CommonDrawerTracking ref="drawerRef" />
+		<CommonDrawerTracking ref="drawerRef" @update:data="fetchData" />
 	</div>
 </template>

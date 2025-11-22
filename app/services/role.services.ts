@@ -40,7 +40,7 @@ export const createRoleService = async (payload: { name: string }) => {
  */
 export const updateRoleService = async (id: number, payload: { name?: string }) => {
 	const { $apiFetch } = useNuxtApp();
-	return await $apiFetch<RoleDetailResponse>(`roles/${id}`, {
+	return await $apiFetch<Role>(`roles/${id}`, {
 		method: "PATCH",
 		body: payload,
 	});

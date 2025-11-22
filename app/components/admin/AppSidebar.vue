@@ -12,26 +12,30 @@ const toggleDropdown = (label: string) => {
 const navItems = [
 	{ label: "Dashboard", to: "/admin", icon: Home },
 
-	{ label: "Pengajuan Baru", to: "/admin/request/new", icon: FilePlus },
+	{
+		label: "Pengajuan Baru",
+		icon: FilePlus,
+		children: [
+			{ label: "Permohonan Baru", to: "/admin/request/new" },
+			{ label: "Verifikasi Berkas", to: "/admin/request/verification" },
+		],
+	},
 
 	{
 		label: "Pengajuan Proses",
 		icon: Box,
 		children: [
-			{ label: "Tahap 1", to: "/admin/request/tahap-1" },
-			{ label: "Tahap 2", to: "/admin/request/tahap-2" },
-			{ label: "Tahap 3", to: "/admin/request/tahap-3" },
-			{ label: "Tahap 4", to: "/admin/request/tahap-4" },
+			{ label: "Tahap 1", to: "/admin/request/stage/tahap-1" },
+			{ label: "Tahap 2", to: "/admin/request/stage/tahap-2" },
+			{ label: "Tahap 3", to: "/admin/request/stage/tahap-3" },
+			{ label: "Tahap 4", to: "/admin/request/stage/tahap-4" },
 		],
 	},
 
 	{
 		label: "Pengajuan Perbaikan",
 		icon: RefreshCcw,
-		children: [
-			{ label: "Perbaikan", to: "/admin/request/fixing" },
-			{ label: "Diperbaiki", to: "/admin/request/fixed" },
-		],
+		children: [{ label: "Perbaikan", to: "/admin/request/fixing" }],
 	},
 
 	{ label: "Pengajuan Selesai", to: "/admin/request/done", icon: CheckCircle },
@@ -75,7 +79,7 @@ const navItems = [
 										<SidebarMenuSub>
 											<SidebarMenuSubItem v-for="subItem in item.children" :key="subItem.label">
 												<SidebarMenuSubButton as-child>
-													<NuxtLink :to="subItem.to" class="rounded-md px-5 py-6 text-sm font-medium transition-colors text-[#888C9F]!" :class="[route.path === item.to ? 'bg-blue-500 text-white!' : 'text-[#888C9F]']">
+													<NuxtLink :to="subItem.to" class="rounded-md px-5 py-6 text-sm font-medium text-[#888C9F]!">
 														<span>{{ subItem.label }}</span>
 													</NuxtLink>
 												</SidebarMenuSubButton>
@@ -88,7 +92,7 @@ const navItems = [
 
 						<SidebarMenuItem v-else>
 							<SidebarMenuButton as-child>
-								<NuxtLink class="flex items-center gap-2 rounded-md py-6 text-sm font-medium transition-colors text-[#888C9F]!" :to="item.to" :class="[route.path === item.to ? 'bg-blue-500 text-white!' : 'text-[#888C9F]']">
+								<NuxtLink :to="item.to" class="flex items-center gap-2 rounded-md py-6 text-sm font-medium text-[#888C9F]">
 									<component :is="item.icon" class="h-4 w-4" />
 									<span>{{ item.label }}</span>
 								</NuxtLink>

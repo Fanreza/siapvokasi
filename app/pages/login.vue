@@ -2,7 +2,8 @@
 import { reactive, ref } from "vue";
 import { useAuthStore } from "~/stores/auth";
 import { useRouter } from "vue-router";
-import { toast } from "vue-sonner"; // opsional, kalau kamu pakai sonner
+import { toast } from "vue-sonner";
+import { Eye, EyeOff } from "lucide-vue-next"; // 👈 icon password toggle
 
 definePageMeta({
 	middleware: "guest",
@@ -19,6 +20,7 @@ const form = reactive({
 });
 
 const loading = ref(false);
+const showPassword = ref(false); // 👈 toggle password visibility
 
 const submit = async () => {
 	if (!form.email || !form.password) {
@@ -29,20 +31,15 @@ const submit = async () => {
 	loading.value = true;
 
 	try {
-		const res = await auth.login(form);
+		await auth.login(form);
 
-		// ⭐ Redirect otomatis berdasarkan role
-		if (auth.isAdmin || auth.isSuperadmin) {
-			return router.push("/admin");
-		}
+		// Redirect berdasarkan role
+		if (auth.isAdmin || auth.isSuperadmin) return router.push("/admin");
+		if (auth.isUser) return router.push("/user");
 
-		if (auth.isUser) {
-			return router.push("/user");
-		}
-
-		// fallback
 		router.push("/");
-	} catch (err: any) {
+	} catch (err) {
+		// silent error
 	} finally {
 		loading.value = false;
 	}
@@ -56,8 +53,8 @@ const submit = async () => {
 			<!-- LOGO -->
 			<div class="flex items-center justify-center gap-6 mb-10">
 				<img src="/images/logo.png" alt="Logo Kementerian" class="w-36 object-contain" />
-				<img src="/images/logo-vokasi.png" alt="Logo Kementerian" class="w-36 object-contain" />
-				<img src="/images/logo-stankom.png" alt="Logo Kementerian" class="w-36 object-contain" />
+				<img src="/images/logo-vokasi.png" alt="Logo Vokasi" class="w-36 object-contain" />
+				<img src="/images/logo-stankom.png" alt="Logo Stankom" class="w-36 object-contain" />
 			</div>
 
 			<!-- TITLE -->
@@ -69,39 +66,49 @@ const submit = async () => {
 				</p>
 			</div>
 
-			<!-- FORM -->
-			<Card class="w-full max-w-md mx-auto bg-transparent shadow-none border-none">
-				<CardHeader>
-					<CardTitle class="text-lg">Masuk ke Akun</CardTitle>
-				</CardHeader>
+			<!-- FORM (ENTER SUBMIT FIXED) -->
+			<form @submit.prevent="submit" class="w-full max-w-md mx-auto">
+				<Card class="bg-transparent shadow-none border-none">
+					<CardHeader>
+						<CardTitle class="text-lg">Masuk ke Akun</CardTitle>
+					</CardHeader>
 
-				<CardContent class="space-y-5">
-					<!-- Email -->
-					<div class="grid gap-2">
-						<Label for="email">Email</Label>
-						<Input id="email" type="email" v-model="form.email" placeholder="Masukkan Email" />
-					</div>
+					<CardContent class="space-y-5">
+						<!-- Email -->
+						<div class="grid gap-2">
+							<Label for="email">Email</Label>
+							<Input id="email" type="email" v-model="form.email" placeholder="Masukkan Email" />
+						</div>
 
-					<!-- Password -->
-					<div class="grid gap-2">
-						<Label for="password">Password</Label>
-						<Input id="password" type="password" v-model="form.password" placeholder="Masukkan Password" />
-					</div>
+						<!-- Password -->
+						<div class="grid gap-2">
+							<Label for="password">Password</Label>
+							<div class="relative">
+								<Input id="password" :type="showPassword ? 'text' : 'password'" v-model="form.password" placeholder="Masukkan Password" class="pr-10" />
 
-					<!-- Remember + Forgot -->
-					<div class="flex items-center justify-end text-sm">
-						<NuxtLink to="/auth/forgot-password" class="text-blue-600 font-medium">Lupa Password?</NuxtLink>
-					</div>
+								<!-- Icon untuk lihat password -->
+								<button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700" @click="showPassword = !showPassword">
+									<Eye v-if="showPassword" class="w-5 h-5" />
+									<EyeOff v-else class="w-5 h-5" />
+								</button>
+							</div>
+						</div>
 
-					<!-- Submit Button -->
-					<Button class="w-full bg-blue-600 text-white hover:bg-blue-700" :disabled="loading" @click="submit">
-						{{ loading ? "Memproses..." : "Masuk" }}
-					</Button>
-				</CardContent>
-			</Card>
+						<!-- Forgot Password -->
+						<div class="flex items-center justify-end text-sm">
+							<NuxtLink to="/auth/forgot-password" class="text-blue-600 font-medium">Lupa Password?</NuxtLink>
+						</div>
+
+						<!-- Submit Button -->
+						<Button type="submit" class="w-full bg-blue-600 text-white hover:bg-blue-700" :disabled="loading">
+							{{ loading ? "Memproses..." : "Masuk" }}
+						</Button>
+					</CardContent>
+				</Card>
+			</form>
 		</div>
 
-		<!-- RIGHT ILLUSTRATION -->
+		<!-- RIGHT: ILLUSTRATION -->
 		<div class="hidden lg:flex flex-col items-center justify-between bg-[#EEF3FF] relative">
 			<h2 class="text-3xl font-bold text-gray-800 mb-8 text-center px-10 pt-20">Layanan Sistem Informasi Ajuan Pelacakan</h2>
 

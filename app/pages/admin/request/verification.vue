@@ -6,5 +6,5 @@ definePageMeta({
 </script>
 
 <template>
-	<AdminListRequest status="fixed" />
+	<AdminListRequest status="NEW_DOCUMENTS" />
 </template>

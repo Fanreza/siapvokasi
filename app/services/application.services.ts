@@ -72,3 +72,21 @@ export const submitApplicationFix = async (applicationId: number, payload: Appli
 		body: payload,
 	});
 };
+
+// SUBMIT DOCS ( USER )
+export const submitApplicationDocs = async (applicationId: number, payload: { documentLink: string }) => {
+	const { $apiFetch } = useNuxtApp();
+	return await $apiFetch(`/applications/${applicationId}/document`, {
+		method: "PATCH",
+		body: payload,
+	});
+};
+
+// Toggle requirements check
+export const toggleRequirementStatus = async (applicationId: number, requirementId: number, status: boolean) => {
+	const { $apiFetch } = useNuxtApp();
+	return await $apiFetch(`/applications/${applicationId}/requirements/${requirementId}`, {
+		method: "PATCH",
+		body: { status },
+	});
+};
