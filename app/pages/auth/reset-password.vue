@@ -24,7 +24,7 @@ const submit = async () => {
 	loading.value = true;
 	try {
 		await resetPasswordService(form);
-		toast.success("Permintaan reset password berhasil dikirim!");
+
 		showSuccess.value = true;
 	} catch (err: any) {
 		console.error(err);

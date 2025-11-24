@@ -5,7 +5,7 @@ import getTranslateStatus from "~/helper/getTranslateStatus";
 import { getApplications } from "~/services/application.services";
 
 const props = defineProps<{
-	status: RequestStatusType;
+	status?: RequestStatusType;
 	stage?: "1" | "2" | "3" | "4";
 }>();
 
@@ -17,13 +17,14 @@ const loading = ref(false);
 const data = ref<any[]>([]);
 const totalItems = ref(0);
 
-const stageParams = props.stage ? `stage:${props.stage}` : undefined;
-
 const params = computed(() => ({
 	page: page.value,
 	limit: perPage.value,
 	search: search.value || undefined,
-	filter: `status:${props.status.toUpperCase()}${stageParams ? `&${stageParams}` : ""}`,
+	filter: {
+		currentStageNumber: props.stage ? Number(props.stage) : undefined,
+		status: props.status || undefined,
+	},
 }));
 
 const fetchData = async () => {
@@ -43,7 +44,9 @@ const fetchData = async () => {
 
 watch(params, fetchData);
 
-onMounted(fetchData);
+onMounted(() => {
+	fetchData();
+});
 
 const onNavigateDetail = (item: any) => {
 	navigateTo(`/admin/request/${item.id}`);

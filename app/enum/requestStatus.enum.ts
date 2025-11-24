@@ -6,6 +6,9 @@ export enum RequestStatus {
 	FIXED = "FIXED",
 	COMPLETED = "COMPLETED",
 	REJECTED = "REJECTED",
+
+	NOT_FULFILLED = "NOT_FULFILLED",
+	FULFILLED = "FULFILLED",
 }
 
 export type RequestStatusType = `${RequestStatus}`;

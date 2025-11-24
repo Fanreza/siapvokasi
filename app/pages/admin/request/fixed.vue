@@ -6,5 +6,5 @@ definePageMeta({
 </script>
 
 <template>
-	<AdminListRequest status="PROCESSING" stage="3" />
+	<AdminListRequest status="FIXED" />
 </template>

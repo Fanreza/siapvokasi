@@ -1,66 +1,35 @@
 <script setup lang="ts">
+import getClassStatus from "~/helper/getClassStatus";
+import getTranslateStatus from "~/helper/getTranslateStatus";
+import { getApplications } from "~/services/application.services";
+
 definePageMeta({
 	middleware: "user",
 	layout: "user",
 });
 
-import { ref, onMounted, computed } from "vue";
-import { getApplications } from "~/services/application.services";
-
-// PAGINATION
 const page = ref(1);
-const perPage = 10;
-
-// DATA DARI API
-const allData = ref<any[]>([]);
+const perPage = ref(10);
 const search = ref("");
-const loading = ref(true);
+const loading = ref(false);
 
-// 🟦 MAP STATUS BERKAS (opsional)
-const mapStatusBerkas = (stage: number) => {
-	if (stage === 1) return "Baru";
-	if (stage > 1) return `Perbaikan ke ${stage - 1}`;
-	return "Baru";
-};
+const data = ref<any[]>([]);
+const totalItems = ref(0);
 
-// 🟦 MAP STATUS (API: PROCESSING, COMPLETED, REJECTED, etc)
-const mapStatus = (status: string) => {
-	switch (status) {
-		case "PROCESSING":
-			return "Proses";
-		case "COMPLETED":
-			return "Selesai";
-		case "REJECTED":
-			return "Ditolak";
-		default:
-			return status;
-	}
-};
+const params = computed(() => ({
+	page: page.value,
+	limit: perPage.value,
+	search: search.value || undefined,
+}));
 
-// 🟦 FORMAT TANGGAL
-const formatDate = (iso: string) => {
-	const d = new Date(iso);
-	return d.toLocaleDateString("id-ID", {
-		day: "2-digit",
-		month: "long",
-		year: "numeric",
-	});
-};
-
-// 🟦 LOAD DATA DARI API
 const fetchData = async () => {
 	try {
 		loading.value = true;
-		const res = await getApplications();
 
-		allData.value = res.data.map((item) => ({
-			id: item.applicationNumber,
-			layanan: item.applicationName,
-			tanggal: formatDate(item.applicationDate),
-			statusBerkas: mapStatusBerkas(item.currentStageNumber),
-			status: mapStatus(item.status),
-			raw: item, // untuk drawer
-		}));
+		const res = await getApplications(params.value);
+
+		data.value = res.data;
+		totalItems.value = res.meta.totalItems;
 	} catch (err) {
 		console.error(err);
 	} finally {
@@ -68,57 +37,29 @@ const fetchData = async () => {
 	}
 };
 
-onMounted(async () => {
-	await fetchData();
-});
+watch(params, fetchData);
 
-// FILTERING
-const filteredData = computed(() => {
-	return allData.value.filter((item) => item.layanan.toLowerCase().includes(search.value.toLowerCase()));
-});
+onMounted(fetchData);
 
-// PAGINATION
-const paginatedData = computed(() => {
-	const start = (page.value - 1) * perPage;
-	return filteredData.value.slice(start, start + perPage);
-});
-
-// TOTAL
-const total = computed(() => filteredData.value.length);
-
-// COLOR HELPER
-const statusColor = (status: string) => {
-	const s = status.toLowerCase();
-
-	if (s.includes("baru")) return "text-blue-500";
-	if (s.includes("proses")) return "text-blue-500";
-	if (s.includes("perbaikan")) return "text-yellow-500";
-	if (s.includes("ditolak")) return "text-red-500";
-	if (s.includes("selesai")) return "text-green-500";
-
-	return "text-gray-500";
+const onNavigateDetail = (item: any) => {
+	navigateTo(`/admin/request/${item.id}`);
 };
 
 const drawerRef = ref();
-
-const handlePageChange = (newPage: number) => {
-	page.value = newPage;
-};
 </script>
 
 <template>
 	<div class="space-y-6 bg-white p-10 rounded">
+		<!-- HEADER -->
 		<div class="flex justify-between items-center">
-			<!-- TITLE -->
 			<div>
 				<h2 class="text-xl font-semibold">Histori Pengajuan</h2>
-				<p class="text-gray-400 text-sm">Ada sekitar {{ total }} pengajuan</p>
+				<p class="text-gray-400 text-sm">Ada sekitar {{ totalItems }} pengajuan</p>
 			</div>
 
-			<!-- SEARCH -->
-			<div class="flex justify-end items-center gap-2">
+			<div class="flex items-center gap-2">
 				<p>Cari</p>
-				<Input v-model="search" placeholder="Cari layanan" class="w-80" />
+				<CommonDebouncedSearch v-model="search" :debounce="300" placeholder="Cari layanan..." />
 			</div>
 		</div>
 
@@ -126,32 +67,52 @@ const handlePageChange = (newPage: number) => {
 		<Table class="[&_th]:border-none [&_td]:border-none [&_tr]:border-none">
 			<TableHeader class="bg-[#F3F6F9]">
 				<TableRow>
-					<TableHead>ID BERKAS</TableHead>
+					<TableHead>KODE BERKAS</TableHead>
+					<TableHead>NOMOR SURAT</TableHead>
 					<TableHead>INFORMASI LAYANAN</TableHead>
-					<TableHead>STATUS BERKAS</TableHead>
+					<TableHead>Pengusul</TableHead>
 					<TableHead>STATUS</TableHead>
 					<TableHead>AKSI</TableHead>
 				</TableRow>
 			</TableHeader>
 
 			<TableBody>
-				<TableRow v-for="item in paginatedData" :key="item.id">
-					<TableCell>{{ item.id }}</TableCell>
+				<!-- Loading -->
+				<TableRow v-if="loading">
+					<TableCell colspan="6" class="text-center py-10 text-gray-400"> Mengambil data... </TableCell>
+				</TableRow>
+
+				<!-- Empty State -->
+				<TableRow v-if="!loading && data.length === 0">
+					<TableCell colspan="6" class="text-center py-10 text-gray-400">
+						<div class="flex flex-col items-center justify-center gap-2">
+							<div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+								<Icon name="lucide:inbox" class="w-6 h-6 text-gray-400" />
+							</div>
+							<p class="text-sm text-gray-500">Tidak ada data ditemukan</p>
+						</div>
+					</TableCell>
+				</TableRow>
+
+				<!-- Data Rows -->
+				<TableRow v-for="item in data" :key="item.id">
+					<TableCell>{{ item.code }}</TableCell>
+					<TableCell>{{ item.applicationNumber }}</TableCell>
 
 					<TableCell>
-						<div class="font-medium">{{ item.layanan }}</div>
-						<div class="text-xs text-gray-400">{{ item.tanggal }}</div>
+						<div class="font-medium">{{ item.applicationName }}</div>
+						<div class="text-xs text-gray-400">
+							{{ new Date(item.applicationDate).toLocaleDateString("id-ID") }}
+						</div>
 					</TableCell>
 
 					<TableCell>
-						<span :class="statusColor(item.statusBerkas)">
-							{{ item.statusBerkas }}
-						</span>
+						{{ item.applicantName || "-" }}
 					</TableCell>
 
 					<TableCell>
-						<span :class="statusColor(item.status)">
-							{{ item.status }}
+						<span :class="getClassStatus(item.status)" class="px-2 py-1 rounded-full text-xs font-medium">
+							{{ getTranslateStatus(item.status) }}
 						</span>
 					</TableCell>
 
@@ -163,7 +124,7 @@ const handlePageChange = (newPage: number) => {
 		</Table>
 
 		<!-- PAGINATION -->
-		<UserPagination :page="page" :total="filteredData.length" :perPage="perPage" @updatePage="handlePageChange" />
+		<UserPagination :page="page" :total="totalItems" :perPage="perPage" @updatePage="page = $event" />
 
 		<CommonDrawerTracking ref="drawerRef" @update:data="fetchData" />
 	</div>

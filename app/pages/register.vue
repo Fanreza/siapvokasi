@@ -34,7 +34,7 @@ const submit = async () => {
 	loading.value = true;
 	try {
 		await registerService(form);
-		toast.success("Registrasi berhasil!");
+
 		showSuccess.value = true;
 	} catch (err: any) {
 		console.error(err);

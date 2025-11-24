@@ -4,7 +4,7 @@ import { toast } from "vue-sonner";
 import { useRoute, useRouter } from "vue-router";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { getApplicationDetail, getApplicationLogs, approveApplicationFirst, rejectApplication, approveApplicationNext, requestApplicationFix, toggleRequirementStatus } from "~/services/application.services";
+import { getApplicationDetail, getApplicationLogs, approveApplicationFirst, rejectApplication, approveApplicationNext, requestApplicationFix, toggleRequirementStatus, approveApplicationDocs, submitApplicationFix } from "~/services/application.services";
 import getClassStatus from "~/helper/getClassStatus";
 import getTranslateStatus from "~/helper/getTranslateStatus";
 
@@ -67,61 +67,39 @@ const leftInfo = computed(() => {
 	];
 });
 
-const timeline = computed<TimelineRow[]>(() => {
-	if (!detail.value || !Array.isArray(logs.value)) return [];
-
-	// Group logs by stage (handle log.stageNumber AND log.preStage)
-	const grouped: Record<number, StageLog[]> = {};
-
-	// ensure we keep stable sort: older first
-	const sortedLogs = [...logs.value].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-
-	for (const lg of sortedLogs) {
-		// 1) push by explicit stageNumber if present and > 0
-		if (lg.stageNumber != null && Number(lg.stageNumber) > 0) {
-			const s = Number(lg.stageNumber);
-			grouped[s] = grouped[s] || [];
-			grouped[s].push({
-				date: new Date(lg.createdAt).toLocaleString("id-ID"),
-				status: lg.status,
-				note: lg.note,
-			});
-		}
-
-		// 2) if log contains preStage object, map that preStage.id into grouped
-		if (lg.preStage && typeof lg.preStage.id !== "undefined" && lg.preStage.id != null) {
-			const ps = Number(lg.preStage.id);
-			// try to use preStage.createdAt if available, otherwise fall back to log.createdAt
-			const preCreatedAt = lg.preStage.createdAt || lg.createdAt;
-			grouped[ps] = grouped[ps] || [];
-			grouped[ps].push({
-				date: new Date(preCreatedAt).toLocaleString("id-ID"),
-				status: lg.preStage.status || lg.status || "UNKNOWN",
-				note: lg.preStage.letterLink ?? lg.note,
-			});
-		}
-	}
-
-	// Detect if we actually have any stage 1..4 entries to show
-	const hasStages = [1, 2, 3, 4].some((s) => Array.isArray(grouped[s]) && grouped[s].length > 0);
-	if (!hasStages) return [];
-
-	// Build one-row timeline with stage1..stage4 (null if missing)
-	return [
-		{
-			step: detail.value.currentStageNumber ?? 0,
-			stage1: grouped[1] ? { logs: grouped[1] } : null,
-			stage2: grouped[2] ? { logs: grouped[2] } : null,
-			stage3: grouped[3] ? { logs: grouped[3] } : null,
-			stage4: grouped[4] ? { logs: grouped[4] } : null,
-		},
-	];
-});
-
-// LOAD
+// LOAD onMounted
 onMounted(async () => {
 	detail.value = await getApplicationDetail(applicationId);
-	logs.value = (await getApplicationLogs(applicationId)) as any[];
+	const raw = (await getApplicationLogs(applicationId)) as any[];
+
+	logs.value = raw.filter((s: any) => s.stageNumber > 0).flatMap((s: any) => (s.logs || []).map((l: any) => ({ ...l, stageNumber: s.stageNumber })));
+});
+
+const timeline = computed<TimelineRow[]>(() => {
+	if (!logs.value.length) return [];
+
+	// group logs by stageNumber (1..4)
+	const stages: Record<number, any> = {};
+	for (const log of logs.value) {
+		const sn = Number(log.stageNumber) || 1;
+		if (!stages[sn]) stages[sn] = { logs: [] };
+		stages[sn].logs.push({
+			status: log.status,
+			note: log.note,
+			raw: log,
+		});
+	}
+
+	// build single timeline row
+	return [
+		{
+			step: detail.value?.currentStageNumber ?? 1,
+			stage1: stages[1] ?? null,
+			stage2: stages[2] ?? null,
+			stage3: stages[3] ?? null,
+			stage4: stages[4] ?? null,
+		},
+	];
 });
 
 // ACTIONS for initial stage (currentStageNumber === 0)
@@ -142,8 +120,6 @@ const approveFirst = async () => {
 			note: adminNote.value,
 		});
 
-		toast.success("Pengajuan berhasil diterima.");
-
 		router.back();
 	} catch (err) {
 	} finally {
@@ -159,8 +135,6 @@ const rejectFirst = async () => {
 			letterLink: letterLink.value,
 			note: adminNote.value,
 		});
-
-		toast.success("Pengajuan berhasil ditolak.");
 
 		router.back();
 	} catch (err) {
@@ -181,8 +155,6 @@ const approveStage = async () => {
 			note: adminNote.value,
 		});
 
-		toast.success("Pengajuan berhasil diterima.");
-
 		router.back();
 	} finally {
 		actionLoading.value = false;
@@ -201,7 +173,48 @@ const fixStage = async () => {
 			requirementIds: notSuitableIds,
 		});
 
-		toast.success("Permintaan perbaikan berhasil dikirim.");
+		router.back();
+	} finally {
+		actionLoading.value = false;
+	}
+};
+
+// TOGGLE CHECK UNCHECK REQUIREMENTS
+const updatingReq = ref<number | null>(null);
+const onToggleRequirement = async (req: any, newValue: boolean) => {
+	try {
+		updatingReq.value = req.requirementId;
+
+		// optimist update
+		req.status = newValue;
+
+		console.log(req.status);
+
+		await toggleRequirementStatus(applicationId, req.requirementId, newValue);
+	} catch (err) {
+		// rollback
+		req.status = !newValue;
+	} finally {
+		updatingReq.value = null;
+	}
+};
+
+// ON VERIFY DOCS (stage 0 and status NEW_DOCUMENTS)
+const selectedAction = ref<"approve" | "reject" | null>(null);
+
+const onVerifyDocs = async () => {
+	try {
+		actionLoading.value = true;
+
+		const payload = {
+			note: adminNote.value,
+			letterLink: letterLink.value,
+			...(selectedAction.value === "reject" && {
+				returnToSubmitter: true,
+			}),
+		};
+
+		await approveApplicationDocs(applicationId, payload);
 
 		router.back();
 	} finally {
@@ -209,29 +222,36 @@ const fixStage = async () => {
 	}
 };
 
-// CURRENT STAGE 0 AND ADMIN VERIFY DOCS
-const selectedAction = ref<"approve" | "reject" | null>(null);
-
-// TOGGLE CHECK UNCHECK REQUIREMENTS
-const updatingReq = ref<number | null>(null);
-
-const onToggleRequirement = async (req: any, newValue: boolean) => {
+// on submit fix
+const isConfirmOpenFix = ref(false);
+const onSubmitApplicationFix = async () => {
 	try {
-		updatingReq.value = req.id;
+		actionLoading.value = true;
 
-		// optimist update
-		req.status = newValue;
+		await submitApplicationFix(applicationId, {
+			note: adminNote.value,
+		});
 
-		await toggleRequirementStatus(applicationId, req.id, newValue);
-
-		toast.success("Status dokumen diperbarui.");
-	} catch (err) {
-		toast.error("Gagal memperbarui status.");
-
-		// rollback
-		req.status = !newValue;
+		router.back();
 	} finally {
-		updatingReq.value = null;
+		actionLoading.value = false;
+	}
+};
+
+const isConfirmLastStageOpen = ref(false);
+const additionalLink = ref("");
+const onSubmitLastStage = async () => {
+	try {
+		actionLoading.value = true;
+
+		await approveApplicationNext(applicationId, {
+			note: adminNote.value,
+			additionalLink: additionalLink.value,
+		});
+
+		router.back();
+	} finally {
+		actionLoading.value = false;
 	}
 };
 </script>
@@ -272,10 +292,25 @@ const onToggleRequirement = async (req: any, newValue: boolean) => {
 						<AccordionContent>
 							<div class="space-y-3 mt-3">
 								<!-- Surat Permohonan -->
-								<div class="flex items-center justify-between p-3 bg-white rounded-lg border">
+								<div class="flex items-center justify-between p-3 bg-white rounded-lg border" v-if="detail?.requestLetterDocument">
 									<div>
 										<p class="font-medium text-sm">Surat Permohonan</p>
 										<a :href="detail?.requestLetterDocument" target="_blank" class="text-blue-500 text-xs underline">Link Berkas</a>
+									</div>
+								</div>
+
+								<!-- Dokumen Permohonan -->
+								<div class="flex items-center justify-between p-3 bg-white rounded-lg border" v-if="detail?.documentLink">
+									<div>
+										<p class="font-medium text-sm">Dokumen</p>
+										<a :href="detail?.documentLink" target="_blank" class="text-blue-500 text-xs underline">Link Berkas</a>
+									</div>
+								</div>
+
+								<div class="flex items-center justify-between p-3 bg-white rounded-lg border" v-if="detail?.attachmentLink">
+									<div>
+										<p class="font-medium text-sm">Lampiran</p>
+										<a :href="detail?.attachmentLink" target="_blank" class="text-blue-500 text-xs underline">Link Berkas</a>
 									</div>
 								</div>
 							</div>
@@ -299,7 +334,7 @@ const onToggleRequirement = async (req: any, newValue: boolean) => {
 									<!-- switch sesuai -->
 									<div class="flex items-center gap-2">
 										<label class="text-xs text-gray-600">Sesuai</label>
-										<Checkbox v-model="req.status" :disabled="detail?.currentStageNumber > 0 || updatingReq === req.id" @click="onToggleRequirement(req, $event)" />
+										<Checkbox v-model="req.status" :disabled="detail?.currentStageNumber > 0 || updatingReq === req.requirementId || !detail?.documentLink" @click="onToggleRequirement(req, $event)" />
 									</div>
 								</div>
 							</div>
@@ -310,7 +345,7 @@ const onToggleRequirement = async (req: any, newValue: boolean) => {
 		</div>
 
 		<!-- TIMELINE -->
-		<div class="mt-10" v-if="timeline.length && detail?.currentStageNumber > 0">
+		<div class="mt-10 w-[50%]" v-if="timeline.length && detail?.currentStageNumber > 0">
 			<h3 class="text-gray-900 font-bold mb-6">Posisi Berkas</h3>
 
 			<div class="overflow-x-auto">
@@ -327,15 +362,13 @@ const onToggleRequirement = async (req: any, newValue: boolean) => {
 					<TableBody>
 						<TableRow v-for="row in timeline" :key="row.step">
 							<TableCell v-for="n in 4" :key="n">
-								<div v-if="row['stage' + n]">
-									<span class="px-3 py-1 rounded text-xs font-semibold block" :class="getClassStatus(row['stage' + n].logs.at(-1).status)">
-										{{ row["stage" + n].logs.at(-1).date }}
-										<br />
-										{{ row["stage" + n].logs.at(-1).status }}
+								<template v-if="row['stage' + n]">
+									<span class="px-3 py-1 rounded text-xs font-semibold block text-center" :class="getClassStatus((row['stage' + n] as any)?.logs?.at(-1)?.status)">
+										{{ (row["stage" + n] as any)?.logs?.at(-1)?.status }}
 									</span>
 
-									<Button size="sm" variant="default" class="mt-2 text-xs" @click="openLog('Tahap ' + n, row['stage' + n].logs)"> Lihat Log </Button>
-								</div>
+									<Button size="sm" variant="default" class="mt-2 text-xs w-full" @click="openLog('Tahap ' + n, (row['stage' + n] as any)?.logs)"> Lihat Log </Button>
+								</template>
 							</TableCell>
 						</TableRow>
 					</TableBody>
@@ -343,8 +376,8 @@ const onToggleRequirement = async (req: any, newValue: boolean) => {
 			</div>
 		</div>
 
-		<!-- ACTIONS for initial stage (currentStageNumber === 0) -->
-		<div v-if="detail?.currentStageNumber === 0 && detail?.status === 'NEW'" class="mt-6 border-t pt-6">
+		<!-- ACTIONS for approve Form -->
+		<div v-if="detail?.currentStageNumber === 0 && detail?.status === 'NEW' && !detail?.confirmationLetterDocument" class="mt-6 border-t pt-6">
 			<h3 class="text-gray-900 font-semibold mb-3">Terima Permohonan</h3>
 
 			<div class="grid grid-cols-1 gap-10">
@@ -390,7 +423,7 @@ const onToggleRequirement = async (req: any, newValue: boolean) => {
 		</div>
 
 		<!-- Actions for stage start (detail?.currentStageNumber > 0) -->
-		<div v-if="detail?.currentStageNumber > 0" class="mt-6 border-t pt-6">
+		<div v-if="detail?.currentStageNumber > 0 && detail?.currentStageNumber !== 4 && (detail?.status === 'PROCESSING' || detail?.status === 'FIXED')" class="mt-6 border-t pt-6">
 			<div class="grid grid-cols-1 gap-10">
 				<div>
 					<Label class="text-sm text-gray-600">Catatan Admin</Label>
@@ -431,7 +464,7 @@ const onToggleRequirement = async (req: any, newValue: boolean) => {
 		</div>
 
 		<!-- ACTIONS: muncul hanya jika stage 0 dan status = NEW_DOCUMENTS -->
-		<div v-if="detail?.currentStageNumber === 0 && detail?.status === 'NEW_DOCUMENTS'" class="mt-6 border-t pt-6">
+		<div v-if="detail?.currentStageNumber === 0 && detail?.status === 'NEW_DOCUMENTS' && detail?.documentLink && detail?.lastLogStatus !== 'NOT_FULFILLED'" class="mt-6 border-t pt-6">
 			<h3 class="text-gray-900 font-semibold mb-3">Verifikasi Berkas</h3>
 
 			<!-- TOGGLE BUTTON -->
@@ -454,7 +487,7 @@ const onToggleRequirement = async (req: any, newValue: boolean) => {
 				</div>
 
 				<div class="flex justify-end">
-					<Button class="px-4 py-2" :disabled="actionLoading || !letterLink || !adminNote" @click="approveFirst()"> Kirim </Button>
+					<Button class="px-4 py-2" :disabled="actionLoading || !letterLink || !adminNote" @click="onVerifyDocs()"> Kirim </Button>
 				</div>
 			</div>
 
@@ -466,7 +499,63 @@ const onToggleRequirement = async (req: any, newValue: boolean) => {
 				</div>
 
 				<div class="flex justify-end">
-					<Button variant="destructive" class="px-4 py-2" :disabled="actionLoading || !adminNote" @click="rejectFirst()"> Kirim </Button>
+					<Button variant="destructive" class="px-4 py-2" :disabled="actionLoading || !adminNote" @click="onVerifyDocs()"> Kirim </Button>
+				</div>
+			</div>
+		</div>
+
+		<!-- Actions for fix form -->
+		<div v-if="detail?.currentStageNumber > 0 && detail?.status === 'FIXING'" class="mt-6 border-t pt-6">
+			<div class="grid grid-cols-1 gap-10">
+				<div>
+					<Label class="text-sm text-gray-600">Catatan Admin</Label>
+					<AdminAppEditor v-model="adminNote" rows="4" placeholder="Catatan untuk pengaju..." class="w-full rounded-md border p-2 bg-white"></AdminAppEditor>
+				</div>
+
+				<div class="flex gap-3 justify-end">
+					<!-- PERBAIKI -->
+					<Button
+						variant="default"
+						class="px-4 py-2 rounded text-white"
+						:disabled="actionLoading || !adminNote"
+						@click="
+							() => {
+								isConfirmOpenFix = true;
+							}
+						"
+					>
+						Perbaiki
+					</Button>
+				</div>
+			</div>
+		</div>
+
+		<!-- Actions for last stage approve with additional link -->
+		<div v-if="detail?.currentStageNumber === 4 && (detail?.status === 'PROCESSING' || detail?.status === 'FIXED')" class="mt-6 border-t pt-6">
+			<div class="grid grid-cols-1 gap-10">
+				<div>
+					<Label class="text-sm text-gray-600">Lampiran RSKKNI</Label>
+					<Input v-model="additionalLink" type="text" placeholder="https://drive.google.com/..." class="w-full rounded-md border p-2 bg-white" />
+				</div>
+
+				<div>
+					<Label class="text-sm text-gray-600">Catatan Admin</Label>
+					<AdminAppEditor v-model="adminNote" rows="4" placeholder="Catatan untuk pengaju..." class="w-full rounded-md border p-2 bg-white"></AdminAppEditor>
+				</div>
+
+				<div class="flex gap-3 justify-end">
+					<!-- TERIMA -->
+					<Button
+						class="px-4 py-2 rounded text-white"
+						:disabled="actionLoading || !adminNote"
+						@click="
+							() => {
+								isConfirmLastStageOpen = true;
+							}
+						"
+					>
+						Terima
+					</Button>
 				</div>
 			</div>
 		</div>
@@ -488,7 +577,7 @@ const onToggleRequirement = async (req: any, newValue: boolean) => {
 						{{ getTranslateStatus(log.status) }}
 					</p>
 
-					<!-- <p class="text-xs text-gray-600 mt-1" v-html="log.note"></p> -->
+					<p class="text-xs text-gray-600 mt-1" v-html="log.note"></p>
 				</div>
 			</div>
 		</DialogContent>
@@ -538,24 +627,70 @@ const onToggleRequirement = async (req: any, newValue: boolean) => {
 					<p class="text-xs text-gray-500">Catatan Admin:</p>
 					<p class="text-sm whitespace-pre-wrap" v-html="adminNote"></p>
 				</div>
-
-				<!-- LIST PERBAIKAN -->
-				<div v-if="stageAction === 'fix'" class="p-3 border rounded bg-red-50">
-					<p class="text-xs text-gray-500 mb-2">Dokumen yang perlu diperbaiki:</p>
-
-					<ul class="list-disc pl-5 text-sm space-y-1">
-						<li v-for="req in detail.applicationRequirements.filter((r: any) => r.status === false)" :key="req.id">
-							{{ req.requirement.description }}
-						</li>
-					</ul>
-				</div>
 			</div>
 
 			<div class="flex justify-end gap-3 mt-6">
 				<Button variant="secondary" @click="stageConfirmOpen = false"> Batal </Button>
 
-				<Button :disabled="actionLoading" @click="stageAction === 'approve' ? approveStage() : fixStage()" :variant="stageAction === 'approve' ? 'default' : 'destructive'">
+				<Button :disabled="actionLoading" @click="stageAction === 'approve' ? approveStage() : fixStage()" :variant="stageAction === 'approve' ? 'default' : 'default'">
 					{{ actionLoading ? "Memproses..." : stageAction === "approve" ? "Ya, Terima" : "Ya, Perbaiki" }}
+				</Button>
+			</div>
+		</DialogContent>
+	</Dialog>
+
+	<!-- Confirm FIX -->
+	<Dialog v-model:open="isConfirmOpenFix">
+		<DialogContent class="max-w-md">
+			<DialogHeader>
+				<DialogTitle> Konfirmasi Perbaikan </DialogTitle>
+				<DialogDescription> Pastikan data berikut benar. </DialogDescription>
+			</DialogHeader>
+
+			<div class="mt-4 space-y-4">
+				<!-- CATATAN ADMIN -->
+				<div class="p-3 border rounded bg-gray-50">
+					<p class="text-xs text-gray-500">Catatan Admin:</p>
+					<p class="text-sm whitespace-pre-wrap" v-html="adminNote"></p>
+				</div>
+			</div>
+
+			<div class="flex justify-end gap-3 mt-6">
+				<Button variant="secondary" @click="isConfirmOpenFix = false"> Batal </Button>
+
+				<Button :disabled="actionLoading" @click="onSubmitApplicationFix" variant="default">
+					{{ actionLoading ? "Memproses..." : "Ya, Perbaiki" }}
+				</Button>
+			</div>
+		</DialogContent>
+	</Dialog>
+
+	<!-- Confirm LAST STAGE -->
+	<Dialog v-model:open="isConfirmLastStageOpen">
+		<DialogContent class="max-w-md">
+			<DialogHeader>
+				<DialogTitle>Konfirmasi {{ confirmType === "approve" ? "Penerimaan" : "Penolakan" }}</DialogTitle>
+				<DialogDescription> Pastikan data berikut sudah benar sebelum melanjutkan. </DialogDescription>
+			</DialogHeader>
+
+			<div class="mt-4 space-y-4">
+				<div class="p-3 border rounded bg-gray-50">
+					<p class="text-xs text-gray-500">Link RSKKNI</p>
+					<p class="text-sm font-medium break-all">{{ additionalLink }}</p>
+				</div>
+
+				<div class="p-3 border rounded bg-gray-50">
+					<p class="text-xs text-gray-500">Catatan Admin:</p>
+					<p class="text-sm whitespace-pre-wrap" v-html="adminNote"></p>
+				</div>
+			</div>
+
+			<div class="flex justify-end gap-3 mt-6">
+				<Button variant="secondary" @click="isConfirmLastStageOpen = false">Batal</Button>
+
+				<!-- Execution -->
+				<Button :disabled="actionLoading" @click="onSubmitLastStage" variant="default" class="px-4 py-2">
+					{{ actionLoading ? "Memproses..." : "Ya, Terima" }}
 				</Button>
 			</div>
 		</DialogContent>

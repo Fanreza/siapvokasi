@@ -77,6 +77,7 @@ export interface ApplicationApproveFirstPayload {
 /** APPROVE (next stage) */
 export interface ApplicationApproveNextPayload {
 	note: string;
+	additionalLink?: string;
 }
 
 /** REJECT (same as approve first time) */

@@ -53,6 +53,14 @@ export default defineNuxtPlugin((nuxtApp) => {
 			}
 		},
 
+		onResponse: ({ response }) => {
+			const message = (response._data as any)?.message || response.statusText;
+
+			if (message) {
+				toast.success(message);
+			}
+		},
+
 		onRequestError: ({ error }) => {
 			toast.error(`Gagal mengirim request: ${error.message}`);
 		},

@@ -62,7 +62,7 @@ const handleSubmit = async () => {
 
 	try {
 		await createApplication(payload.value);
-		toast.success("Pengajuan berhasil dikirim!");
+
 		emit("next");
 	} catch (err: any) {
 		console.error(err);

@@ -118,7 +118,6 @@ const approveFirstStage = async () => {
 			letterLink: letterLink.value,
 			note: adminNote.value,
 		});
-		toast.success("Berkas berhasil diterima.");
 		router.back();
 	} finally {
 		actionLoading.value = false;
@@ -137,7 +136,6 @@ const rejectFirstStage = async () => {
 			letterLink: letterLink.value,
 			note: adminNote.value,
 		});
-		toast.success("Berkas ditolak.");
 		router.back();
 	} finally {
 		actionLoading.value = false;
@@ -148,7 +146,6 @@ const rejectFirstStage = async () => {
 const approveNext = async () => {
 	actionLoading.value = true;
 	await approveApplicationNext(applicationId, { note: adminNote.value });
-	toast.success("Tahap berhasil disetujui.");
 	router.back();
 };
 
@@ -162,7 +159,6 @@ const fixStage = async () => {
 		requirementIds: invalidIds,
 	});
 
-	toast.success("Permintaan perbaikan dikirim.");
 	router.back();
 };
 </script>

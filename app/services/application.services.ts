@@ -90,3 +90,19 @@ export const toggleRequirementStatus = async (applicationId: number, requirement
 		body: { status },
 	});
 };
+
+// APPROVE DOCS
+export const approveApplicationDocs = async (
+	applicationId: number,
+	payload: {
+		note: string;
+		letterLink: string;
+		returnToSubmitter?: boolean;
+	}
+) => {
+	const { $apiFetch } = useNuxtApp();
+	return await $apiFetch(`applications/${applicationId}/approve`, {
+		method: "POST",
+		body: payload,
+	});
+};

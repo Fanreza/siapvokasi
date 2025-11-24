@@ -14,9 +14,11 @@ const selectedType = ref<string>("");
 const openSheet = (item: any) => {
 	open.value = true;
 
-	selectedId.value = Number(item.raw.id);
+	console.log(item);
 
-	selectedType.value = item.raw.code.includes("SKKNI") ? "SKKNI" : "CLSP";
+	selectedId.value = Number(item.id);
+
+	selectedType.value = item.service.name;
 };
 
 defineExpose({ openSheet });

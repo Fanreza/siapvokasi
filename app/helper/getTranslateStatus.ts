@@ -12,6 +12,10 @@ const getTranslateStatus = (status: RequestStatus) => {
 			return "PERBAIKAN";
 		case RequestStatus.FIXED:
 			return "TELAH DIPERBAIKI";
+		case RequestStatus.NOT_FULFILLED:
+			return "BELUM LENGKAP";
+		case RequestStatus.FULFILLED:
+			return "DILENGKAPI";
 		case RequestStatus.COMPLETED:
 			return "SELESAI";
 		case RequestStatus.REJECTED:

@@ -79,7 +79,6 @@ const approve = async () => {
 	// 	note: note.value,
 	// });
 
-	toast.success("Tahap disetujui");
 	router.back();
 };
 
@@ -93,7 +92,6 @@ const fix = async () => {
 		requirementIds: invalidIds,
 	});
 
-	toast.success("Perbaikan dikirim");
 	router.back();
 };
 </script>

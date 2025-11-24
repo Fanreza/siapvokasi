@@ -34,7 +34,7 @@ const handleSubmit = async () => {
 
 	try {
 		await createUserService(form);
-		toast.success("User berhasil dibuat");
+
 		router.push("/admin/users");
 	} finally {
 		loading.value = false;

@@ -35,7 +35,10 @@ const navItems = [
 	{
 		label: "Pengajuan Perbaikan",
 		icon: RefreshCcw,
-		children: [{ label: "Perbaikan", to: "/admin/request/fixing" }],
+		children: [
+			{ label: "Perbaikan", to: "/admin/request/fixing" },
+			{ label: "Diperbaiki", to: "/admin/request/fixed" },
+		],
 	},
 
 	{ label: "Pengajuan Selesai", to: "/admin/request/done", icon: CheckCircle },

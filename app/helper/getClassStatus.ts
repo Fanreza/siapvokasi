@@ -6,6 +6,14 @@ const getClassStatus = (status: RequestStatus): string => {
 			return "bg-blue-100 text-blue-800";
 		case RequestStatus.NEW_DOCUMENTS:
 			return "bg-blue-100 text-blue-800";
+		case RequestStatus.FIXING:
+			return "bg-yellow-100 text-yellow-800";
+		case RequestStatus.FIXED:
+			return "bg-yellow-100 text-yellow-800";
+		case RequestStatus.NOT_FULFILLED:
+			return "bg-yellow-100 text-yellow-800";
+		case RequestStatus.FULFILLED:
+			return "bg-yellow-100 text-yellow-800";
 		case RequestStatus.PROCESSING:
 			return "bg-blue-100 text-blue-800";
 		case RequestStatus.COMPLETED:

@@ -66,8 +66,6 @@ const saveProfile = async () => {
 		// refresh store
 		await auth.refreshUser();
 
-		toast.success("Profil berhasil diperbarui!");
-
 		isEditing.value = false;
 	} catch (err: any) {}
 };
@@ -92,13 +90,9 @@ const changePassword = async () => {
 			newPassword: passwordForm.newPassword,
 		});
 
-		toast.success("Password berhasil diperbarui");
-
 		passwordForm.oldPassword = "";
 		passwordForm.newPassword = "";
-	} catch (err: any) {
-		toast.error(err?.data?.message || "Gagal memperbarui password");
-	}
+	} catch (err: any) {}
 };
 
 const avatarPreview = ref<string | null>(null);
@@ -122,13 +116,9 @@ const uploadAvatar = async () => {
 	try {
 		await uploadAvatarService(avatarFile.value);
 
-		toast.success("Avatar berhasil diperbarui!");
-
 		// Refresh user data
 		await auth.refreshUser();
-	} catch (err: any) {
-		toast.error(err?.data?.message || "Gagal meng-upload avatar");
-	}
+	} catch (err: any) {}
 };
 </script>
 

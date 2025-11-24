@@ -56,7 +56,6 @@ const handleSubmit = async () => {
 			status: form.status === "true",
 		});
 
-		toast.success("User berhasil diperbarui");
 		router.push("/admin/users");
 	} finally {
 		saving.value = false;
