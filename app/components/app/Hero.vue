@@ -14,7 +14,7 @@
 			<p class="text-gray-600 mb-10 text-base lg:text-lg leading-relaxed max-w-xl">Direktorat Bina Standardisasi Kompetensi dan Program Pelatihan</p>
 
 			<!-- Search / Tracking Box -->
-			<div class="bg-white rounded-2xl shadow-2xl p-6 flex flex-wrap justify-center items-center w-[100%]" v-if="layout === 'default'">
+			<div class="bg-white rounded-2xl shadow-2xl p-6 flex flex-wrap justify-center items-center w-full" v-if="layout === 'default'">
 				<input v-model="ticketNumber" type="text" placeholder="Masukan Nomor Tiket" class="text-center md:text-left flex-1 px-5 py-3.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-black font-bold" />
 
 				<Button @click="onNavigateTicket" :disabled="!ticketNumber" class="bg-blue-600 text-white px-8 py-3.5 rounded-xl hover:bg-blue-700 transition-all font-semibold whitespace-nowrap shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"> Tracking </Button>

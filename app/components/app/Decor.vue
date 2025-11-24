@@ -11,7 +11,7 @@
 				<div class="px-4 sm:px-6 lg:px-14">
 					<h2 class="text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-8 leading-tight">Ingin Mengajukan<br />Layanan SIAP VOKASI?</h2>
 
-					<button class="bg-gray-900 text-white px-8 py-4 rounded-lg hover:bg-gray-800 transition-all font-semibold text-base shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5">Buat Pengajuan Baru</button>
+					<button @click="onNavigateRequest" class="bg-gray-900 text-white px-8 py-4 rounded-lg hover:bg-gray-800 transition-all font-semibold text-base shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5">Buat Pengajuan Baru</button>
 				</div>
 
 				<!-- Right Side - Illustration -->
@@ -27,7 +27,9 @@
 </template>
 
 <script setup lang="ts">
-// No reactive data needed for this component
+const onNavigateRequest = () => {
+	navigateTo("/user/request");
+};
 </script>
 
 <style scoped>
