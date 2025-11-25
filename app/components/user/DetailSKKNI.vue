@@ -92,6 +92,11 @@ const timeline = computed<TimelineRow[]>(() => {
 			status: log.status,
 			note: log.note,
 			raw: log,
+			date: new Date(log.createdAt).toLocaleDateString("id-ID", {
+				day: "2-digit",
+				month: "long",
+				year: "numeric",
+			}),
 		});
 	}
 
@@ -195,8 +200,8 @@ const stage4AdditionalLink = computed(() => {
 				<div class="p-6 bg-gray-50 rounded-xl">
 					<div class="text-center mb-6">
 						<h3 class="font-semibold text-gray-700">Status</h3>
-						<div class="px-4 py-2 mt-2 rounded text-sm font-bold" :class="getClassStatus(detail?.status)">
-							{{ getTranslateStatus(detail?.status) }}
+						<div class="px-4 py-2 mt-2 rounded text-sm font-bold" :class="getClassStatus(detail?.lastLogStatus)">
+							{{ getTranslateStatus(detail?.lastLogStatus) }}
 						</div>
 					</div>
 
@@ -225,7 +230,7 @@ const stage4AdditionalLink = computed(() => {
 
 									<div class="flex items-center justify-between p-3 bg-white rounded-lg border" v-if="detail?.attachmentLink">
 										<div>
-											<p class="font-medium text-sm">Lampiran</p>
+											<p class="font-medium text-sm">Draft SKKNI</p>
 											<a :href="detail?.attachmentLink" target="_blank" class="text-blue-500 text-xs underline">Link Berkas</a>
 										</div>
 									</div>
@@ -280,7 +285,9 @@ const stage4AdditionalLink = computed(() => {
 								<TableCell v-for="n in 4" :key="n">
 									<template v-if="row['stage' + n]">
 										<span class="px-3 py-1 rounded text-xs font-semibold block text-center" :class="getClassStatus((row['stage' + n] as any)?.logs?.at(-1)?.status)">
-											{{ (row["stage" + n] as any)?.logs?.at(-1)?.status }}
+											<p>{{ (row["stage" + n] as any)?.logs?.at(-1)?.date }}</p>
+
+											<p>{{ getTranslateStatus((row["stage" + n] as any)?.logs?.at(-1)?.status) }}</p>
 										</span>
 
 										<Button size="sm" variant="default" class="mt-2 text-xs w-full" @click="openLog('Tahap ' + n, (row['stage' + n] as any)?.logs)"> Lihat Log </Button>
@@ -337,7 +344,7 @@ const stage4AdditionalLink = computed(() => {
 			<!-- Show link stage 4 finished -->
 			<div v-if="stage4AdditionalLink && detail?.status === 'COMPLETED' && detail?.currentStageNumber === 4" class="mt-6 p-4 border rounded bg-green-50">
 				<p class="text-sm text-gray-700">
-					Link RSKKNI: <a :href="stage4AdditionalLink" target="_blank" class="text-blue-600 underline">{{ stage4AdditionalLink }}</a>
+					Link SKKNI <a :href="stage4AdditionalLink" target="_blank" class="text-blue-600 underline">{{ stage4AdditionalLink }}</a>
 				</p>
 			</div>
 		</template>
@@ -352,12 +359,14 @@ const stage4AdditionalLink = computed(() => {
 			</DialogHeader>
 
 			<div class="space-y-3 mt-4">
-				<div v-for="item in logItems" class="p-3 border rounded bg-gray-50">
-					<p class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold" :class="getClassStatus(item.status)">
-						{{ getTranslateStatus(item.status) }}
+				<div v-for="(log, index) in logItems" :key="index" class="p-3 border rounded-lg bg-gray-50">
+					<p class="text-sm font-medium">{{ log.date }}</p>
+
+					<p class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold" :class="getClassStatus(log.status)">
+						{{ getTranslateStatus(log.status) }}
 					</p>
 
-					<p class="text-xs text-gray-600 mt-1" v-html="item.note"></p>
+					<p class="text-xs text-gray-600 mt-1" v-html="log.note"></p>
 				</div>
 			</div>
 		</DialogContent>

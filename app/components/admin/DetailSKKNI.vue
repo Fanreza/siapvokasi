@@ -82,6 +82,11 @@ const timeline = computed<TimelineRow[]>(() => {
 			status: log.status,
 			note: log.note,
 			raw: log,
+			date: new Date(log.createdAt).toLocaleDateString("id-ID", {
+				day: "2-digit",
+				month: "long",
+				year: "numeric",
+			}),
 		});
 	}
 
@@ -235,6 +240,8 @@ const onSubmitApplicationFix = async () => {
 
 const isConfirmLastStageOpen = ref(false);
 const additionalLink = ref("");
+const lastStageAction = ref<"approve" | "reject" | null>(null);
+
 const onSubmitLastStage = async () => {
 	if (!additionalLink.value) {
 		toast.error("Link RSKKNI harus diisi.");
@@ -256,6 +263,7 @@ const onSubmitLastStage = async () => {
 };
 
 // Stage 4 additional link
+
 const stage4AdditionalLink = computed(() => {
 	if (!logs.value.length) return null;
 
@@ -290,8 +298,8 @@ const stage4AdditionalLink = computed(() => {
 			<div class="bg-gray-50 rounded-xl p-6 space-y-6">
 				<div class="text-center">
 					<h3 class="text-gray-700 font-semibold mb-2">Status Berkas</h3>
-					<div class="px-4 py-2 rounded-lg font-bold text-sm" :class="getClassStatus(detail?.status)">
-						{{ getTranslateStatus(detail?.status) }}
+					<div class="px-4 py-2 rounded-lg font-bold text-sm" :class="getClassStatus(detail?.lastLogStatus)">
+						{{ getTranslateStatus(detail?.lastLogStatus) }}
 					</div>
 				</div>
 
@@ -320,7 +328,7 @@ const stage4AdditionalLink = computed(() => {
 
 								<div class="flex items-center justify-between p-3 bg-white rounded-lg border" v-if="detail?.attachmentLink">
 									<div>
-										<p class="font-medium text-sm">Lampiran</p>
+										<p class="font-medium text-sm">Draft SKKNI</p>
 										<a :href="detail?.attachmentLink" target="_blank" class="text-blue-500 text-xs underline">Link Berkas</a>
 									</div>
 								</div>
@@ -375,10 +383,12 @@ const stage4AdditionalLink = computed(() => {
 							<TableCell v-for="n in 4" :key="n">
 								<template v-if="row['stage' + n]">
 									<span class="px-3 py-1 rounded text-xs font-semibold block text-center" :class="getClassStatus((row['stage' + n] as any)?.logs?.at(-1)?.status)">
-										{{ (row["stage" + n] as any)?.logs?.at(-1)?.status }}
+										<p>{{ (row["stage" + n] as any)?.logs?.at(-1)?.date }}</p>
+
+										<p>{{ getTranslateStatus((row["stage" + n] as any)?.logs?.at(-1)?.status) }}</p>
 									</span>
 
-									<Button size="sm" variant="default" class="mt-2 text-xs w-full" @click="openLog('Tahap ' + n, (row['stage' + n] as any)?.logs)"> Lihat Log </Button>
+									<Button size="sm" variant="default" class="mt-2 text-xs w-full" @click="openLog('Tahap ' + n, (row['stage' + n] as any)?.logs)"> Lihat </Button>
 								</template>
 							</TableCell>
 						</TableRow>
@@ -387,47 +397,41 @@ const stage4AdditionalLink = computed(() => {
 			</div>
 		</div>
 
-		<!-- ACTIONS for approve Form -->
+		<!-- Actions Approve Form -->
 		<div v-if="detail?.currentStageNumber === 0 && detail?.status === 'NEW' && !detail?.confirmationLetterDocument" class="mt-6 border-t pt-6">
-			<h3 class="text-gray-900 font-semibold mb-3">Terima Permohonan</h3>
+			<h3 class="text-gray-900 font-semibold mb-3">Verifikasi Berkas</h3>
 
-			<div class="grid grid-cols-1 gap-10">
+			<!-- TOGGLE BUTTON -->
+			<div class="flex gap-3 mb-6">
+				<Button :variant="selectedAction === 'approve' ? 'default' : 'secondary'" @click="selectedAction = 'approve'"> Terima </Button>
+
+				<Button :variant="selectedAction === 'reject' ? 'destructive' : 'secondary'" @click="selectedAction = 'reject'"> Tolak </Button>
+			</div>
+
+			<!-- APPROVE FORM -->
+			<div class="space-y-6" v-if="selectedAction">
 				<div>
-					<Label class="text-sm text-gray-600">Surat Penerimaan</Label>
+					<Label class="text-sm text-gray-600">{{ selectedAction === "approve" ? "Surat Penerimaan" : "Surat Penolakan" }}</Label>
 					<Input v-model="letterLink" type="text" placeholder="https://drive.google.com/..." class="w-full rounded-md border p-2 bg-white" />
 				</div>
 
 				<div>
 					<Label class="text-sm text-gray-600">Catatan Admin</Label>
-					<AdminAppEditor v-model="adminNote" rows="4" placeholder="Catatan untuk pengaju..." class="w-full rounded-md border p-2 bg-white"></AdminAppEditor>
+					<AdminAppEditor v-model="adminNote" rows="4" placeholder="Catatan untuk pengaju..." class="w-full rounded-md p-2 bg-white" />
 				</div>
 
-				<div class="flex gap-3 justify-end">
+				<div class="flex justify-end">
 					<Button
+						class="px-4 py-2"
+						:disabled="actionLoading || !letterLink || !adminNote"
 						@click="
 							() => {
-								confirmType = 'reject';
+								confirmType = selectedAction;
 								isConfirmOpen = true;
 							}
 						"
-						:disabled="actionLoading || !letterLink || !adminNote"
-						variant="destructive"
-						class="px-4 py-2 rounded text-white"
 					>
-						Tolak
-					</Button>
-
-					<Button
-						@click="
-							() => {
-								confirmType = 'approve';
-								isConfirmOpen = true;
-							}
-						"
-						:disabled="actionLoading || !letterLink || !adminNote"
-						class="px-4 py-2 rounded text-white"
-					>
-						Terima
+						Kirim
 					</Button>
 				</div>
 			</div>
@@ -435,40 +439,35 @@ const stage4AdditionalLink = computed(() => {
 
 		<!-- Actions for stage start (detail?.currentStageNumber > 0) -->
 		<div v-if="detail?.currentStageNumber > 0 && detail?.currentStageNumber !== 4 && (detail?.status === 'PROCESSING' || detail?.status === 'FIXED')" class="mt-6 border-t pt-6">
-			<div class="grid grid-cols-1 gap-10">
+			<h3 class="text-gray-900 font-semibold mb-3">Aksi Tahap</h3>
+
+			<!-- TOGGLE BUTTON -->
+			<div class="flex gap-3 mb-6">
+				<Button :variant="stageAction === 'approve' ? 'default' : 'secondary'" @click="stageAction = 'approve'"> Terima </Button>
+
+				<Button :variant="stageAction === 'fix' ? 'destructive' : 'secondary'" @click="stageAction = 'fix'"> Perbaiki </Button>
+			</div>
+
+			<!-- FORM MUNCUL SETELAH PILIH TOGGLE -->
+			<div v-if="stageAction" class="space-y-6">
 				<div>
 					<Label class="text-sm text-gray-600">Catatan Admin</Label>
-					<AdminAppEditor v-model="adminNote" rows="4" placeholder="Catatan untuk pengaju..." class="w-full rounded-md border p-2 bg-white"></AdminAppEditor>
+					<AdminAppEditor v-model="adminNote" rows="4" placeholder="Catatan untuk pengaju..." class="w-full rounded-md border p-2 bg-white" />
 				</div>
 
-				<div class="flex gap-3 justify-end">
-					<!-- PERBAIKI -->
+				<!-- BUTTON -->
+				<div class="flex justify-end">
 					<Button
-						variant="destructive"
-						class="px-4 py-2 rounded text-white"
+						class="px-4 py-2"
+						:variant="stageAction === 'approve' ? 'default' : 'destructive'"
 						:disabled="actionLoading || !adminNote"
 						@click="
 							() => {
-								stageAction = 'fix';
 								stageConfirmOpen = true;
 							}
 						"
 					>
-						Perbaiki
-					</Button>
-
-					<!-- TERIMA -->
-					<Button
-						class="px-4 py-2 rounded text-white"
-						:disabled="actionLoading || !adminNote"
-						@click="
-							() => {
-								stageAction = 'approve';
-								stageConfirmOpen = true;
-							}
-						"
-					>
-						Terima
+						Kirim
 					</Button>
 				</div>
 			</div>
@@ -488,7 +487,7 @@ const stage4AdditionalLink = computed(() => {
 			<!-- APPROVE FORM -->
 			<div v-if="selectedAction === 'approve'" class="space-y-6">
 				<div>
-					<Label class="text-sm text-gray-600">Lampiran (Link)</Label>
+					<Label class="text-sm text-gray-600">Draft SKKNI</Label>
 					<Input v-model="letterLink" type="text" placeholder="https://drive.google.com/..." class="w-full rounded-md border p-2 bg-white" />
 				</div>
 
@@ -543,29 +542,43 @@ const stage4AdditionalLink = computed(() => {
 
 		<!-- Actions for last stage approve with additional link -->
 		<div v-if="detail?.currentStageNumber === 4 && (detail?.status === 'PROCESSING' || detail?.status === 'FIXED')" class="mt-6 border-t pt-6">
-			<div class="grid grid-cols-1 gap-10">
-				<div>
+			<h3 class="text-gray-900 font-semibold mb-3">Aksi Tahap Akhir</h3>
+
+			<!-- TOGGLE BUTTON -->
+			<div class="flex gap-3 mb-6">
+				<Button :variant="lastStageAction === 'approve' ? 'default' : 'secondary'" @click="lastStageAction = 'approve'"> Terima </Button>
+
+				<Button :variant="lastStageAction === 'reject' ? 'destructive' : 'secondary'" @click="lastStageAction = 'reject'"> Tolak </Button>
+			</div>
+
+			<!-- FORM AKSI -->
+			<div v-if="lastStageAction" class="space-y-6">
+				<!-- MUNCUL HANYA JIKA TERIMA -->
+				<div v-if="lastStageAction === 'approve'">
 					<Label class="text-sm text-gray-600">Lampiran RSKKNI</Label>
 					<Input v-model="additionalLink" type="text" placeholder="https://drive.google.com/..." class="w-full rounded-md border p-2 bg-white" />
 				</div>
 
+				<!-- CATATAN ADMIN -->
 				<div>
 					<Label class="text-sm text-gray-600">Catatan Admin</Label>
-					<AdminAppEditor v-model="adminNote" rows="4" placeholder="Catatan untuk pengaju..." class="w-full rounded-md border p-2 bg-white"></AdminAppEditor>
+					<AdminAppEditor v-model="adminNote" rows="4" placeholder="Catatan untuk pengaju..." class="w-full rounded-md border p-2 bg-white" />
 				</div>
 
-				<div class="flex gap-3 justify-end">
-					<!-- TERIMA -->
+				<!-- BUTTON -->
+				<div class="flex justify-end">
 					<Button
-						class="px-4 py-2 rounded text-white"
-						:disabled="actionLoading || !adminNote"
+						class="px-4 py-2"
+						:variant="lastStageAction === 'approve' ? 'default' : 'destructive'"
+						:disabled="actionLoading || !adminNote || (lastStageAction === 'approve' && !additionalLink)"
 						@click="
 							() => {
+								confirmType = lastStageAction;
 								isConfirmLastStageOpen = true;
 							}
 						"
 					>
-						Terima
+						Kirim
 					</Button>
 				</div>
 			</div>
@@ -574,20 +587,23 @@ const stage4AdditionalLink = computed(() => {
 		<!-- Show link stage 4 finished -->
 		<div v-if="stage4AdditionalLink && detail?.status === 'COMPLETED' && detail?.currentStageNumber === 4" class="mt-6 p-4 border rounded bg-green-50">
 			<p class="text-sm text-gray-700">
-				Link RSKKNI: <a :href="stage4AdditionalLink" target="_blank" class="text-blue-600 underline">{{ stage4AdditionalLink }}</a>
+				Link SKKNI <a :href="stage4AdditionalLink" target="_blank" class="text-blue-600 underline">{{ stage4AdditionalLink }}</a>
 			</p>
 		</div>
 	</div>
 
 	<!-- LOG DIALOG -->
 	<Dialog v-model:open="isOpen">
+		<DialogOverlay />
 		<DialogContent class="max-w-md">
+			<!-- HEADER -->
 			<DialogHeader>
 				<DialogTitle>{{ selectedStageName }}</DialogTitle>
 				<DialogDescription>Riwayat perubahan status.</DialogDescription>
 			</DialogHeader>
 
-			<div class="mt-4 space-y-3">
+			<!-- BODY SCROLL ONLY -->
+			<div class="max-h-[60vh] overflow-y-auto mt-4 pr-1">
 				<div v-for="(log, index) in selectedStageLogs" :key="index" class="p-3 border rounded-lg bg-gray-50">
 					<p class="text-sm font-medium">{{ log.date }}</p>
 
@@ -603,79 +619,86 @@ const stage4AdditionalLink = computed(() => {
 
 	<!-- DIALOG KONFIRMASI -->
 	<Dialog v-model:open="isConfirmOpen">
+		<DialogOverlay />
 		<DialogContent class="max-w-md">
+			<!-- HEADER -->
 			<DialogHeader>
 				<DialogTitle>Konfirmasi {{ confirmType === "approve" ? "Penerimaan" : "Penolakan" }}</DialogTitle>
-				<DialogDescription> Pastikan data berikut sudah benar sebelum melanjutkan. </DialogDescription>
+				<DialogDescription>Pastikan data berikut sudah benar sebelum melanjutkan.</DialogDescription>
 			</DialogHeader>
 
-			<div class="mt-4 space-y-4">
+			<!-- BODY -->
+			<div class="max-h-[60vh] overflow-y-auto mt-4 pr-1">
 				<div class="p-3 border rounded bg-gray-50">
 					<p class="text-xs text-gray-500">Link Surat Balasan:</p>
 					<p class="text-sm font-medium break-all">{{ letterLink }}</p>
 				</div>
 
-				<div class="p-3 border rounded bg-gray-50">
+				<div class="p-3 border rounded bg-gray-50 mt-4">
 					<p class="text-xs text-gray-500">Catatan Admin:</p>
 					<p class="text-sm whitespace-pre-wrap" v-html="adminNote"></p>
 				</div>
 			</div>
 
+			<!-- FOOTER -->
 			<div class="flex justify-end gap-3 mt-6">
 				<Button variant="secondary" @click="isConfirmOpen = false">Batal</Button>
-
-				<!-- Execution -->
-				<Button :disabled="actionLoading" @click="confirmType === 'approve' ? approveFirst() : rejectFirst()" :variant="confirmType === 'approve' ? 'default' : 'destructive'" class="px-4 py-2">
+				<Button :disabled="actionLoading" @click="confirmType === 'approve' ? approveFirst() : rejectFirst()" :variant="confirmType === 'approve' ? 'default' : 'destructive'">
 					{{ actionLoading ? "Memproses..." : confirmType === "approve" ? "Ya, Terima" : "Ya, Tolak" }}
 				</Button>
 			</div>
 		</DialogContent>
 	</Dialog>
 
+	<!-- STAGE CONFIRM -->
 	<Dialog v-model:open="stageConfirmOpen">
+		<DialogOverlay />
 		<DialogContent class="max-w-md">
+			<!-- HEADER -->
 			<DialogHeader>
-				<DialogTitle> Konfirmasi {{ stageAction === "approve" ? "Penerimaan" : "Permintaan Perbaikan" }} </DialogTitle>
-				<DialogDescription> Pastikan data berikut benar. </DialogDescription>
+				<DialogTitle>Konfirmasi {{ stageAction === "approve" ? "Penerimaan" : "Permintaan Perbaikan" }}</DialogTitle>
+				<DialogDescription>Pastikan data berikut benar.</DialogDescription>
 			</DialogHeader>
 
-			<div class="mt-4 space-y-4">
-				<!-- CATATAN ADMIN -->
+			<!-- BODY -->
+			<div class="max-h-[60vh] overflow-y-auto mt-4 pr-1">
 				<div class="p-3 border rounded bg-gray-50">
 					<p class="text-xs text-gray-500">Catatan Admin:</p>
 					<p class="text-sm whitespace-pre-wrap" v-html="adminNote"></p>
 				</div>
 			</div>
 
+			<!-- FOOTER -->
 			<div class="flex justify-end gap-3 mt-6">
-				<Button variant="secondary" @click="stageConfirmOpen = false"> Batal </Button>
-
-				<Button :disabled="actionLoading" @click="stageAction === 'approve' ? approveStage() : fixStage()" :variant="stageAction === 'approve' ? 'default' : 'default'">
+				<Button variant="secondary" @click="stageConfirmOpen = false">Batal</Button>
+				<Button :disabled="actionLoading" @click="stageAction === 'approve' ? approveStage() : fixStage()" variant="default">
 					{{ actionLoading ? "Memproses..." : stageAction === "approve" ? "Ya, Terima" : "Ya, Perbaiki" }}
 				</Button>
 			</div>
 		</DialogContent>
 	</Dialog>
 
-	<!-- Confirm FIX -->
+	<!-- CONFIRM FIX -->
 	<Dialog v-model:open="isConfirmOpenFix">
+		<DialogOverlay />
 		<DialogContent class="max-w-md">
+			<!-- HEADER -->
 			<DialogHeader>
-				<DialogTitle> Konfirmasi Perbaikan </DialogTitle>
-				<DialogDescription> Pastikan data berikut benar. </DialogDescription>
+				<DialogTitle>Konfirmasi Perbaikan</DialogTitle>
+				<DialogDescription>Pastikan data berikut benar.</DialogDescription>
 			</DialogHeader>
 
-			<div class="mt-4 space-y-4">
-				<!-- CATATAN ADMIN -->
+			<!-- BODY -->
+			<div class="max-h-[60vh] overflow-y-auto mt-4 pr-1">
 				<div class="p-3 border rounded bg-gray-50">
 					<p class="text-xs text-gray-500">Catatan Admin:</p>
 					<p class="text-sm whitespace-pre-wrap" v-html="adminNote"></p>
 				</div>
 			</div>
 
+			<!-- FOOTER -->
 			<div class="flex justify-end gap-3 mt-6">
-				<Button variant="secondary" @click="isConfirmOpenFix = false"> Batal </Button>
-
+				<Button variant="secondary" @click="isConfirmOpenFix = false">Batal</Button>
 				<Button :disabled="actionLoading" @click="onSubmitApplicationFix" variant="default">
 					{{ actionLoading ? "Memproses..." : "Ya, Perbaiki" }}
 				</Button>
@@ -683,32 +706,39 @@ const stage4AdditionalLink = computed(() => {
 		</DialogContent>
 	</Dialog>
 
-	<!-- Confirm LAST STAGE -->
+	<!-- LAST STAGE CONFIRM -->
 	<Dialog v-model:open="isConfirmLastStageOpen">
+		<DialogOverlay />
 		<DialogContent class="max-w-md">
+			<!-- HEADER -->
 			<DialogHeader>
-				<DialogTitle>Konfirmasi {{ confirmType === "approve" ? "Penerimaan" : "Penolakan" }}</DialogTitle>
+				<DialogTitle> Konfirmasi {{ lastStageAction === "approve" ? "Penerimaan" : "Penolakan" }} </DialogTitle>
 				<DialogDescription> Pastikan data berikut sudah benar sebelum melanjutkan. </DialogDescription>
 			</DialogHeader>
 
-			<div class="mt-4 space-y-4">
-				<div class="p-3 border rounded bg-gray-50">
-					<p class="text-xs text-gray-500">Link RSKKNI</p>
-					<p class="text-sm font-medium break-all">{{ additionalLink }}</p>
+			<!-- BODY -->
+			<div class="max-h-[60vh] overflow-y-auto mt-4 pr-1">
+				<!-- MUNCUL HANYA JIKA APPROVE -->
+				<div v-if="lastStageAction === 'approve'" class="p-3 border rounded bg-gray-50">
+					<p class="text-xs text-gray-500">Lampiran RSKKNI</p>
+					<p class="text-sm font-medium break-all">
+						{{ additionalLink }}
+					</p>
 				</div>
 
-				<div class="p-3 border rounded bg-gray-50">
+				<!-- Catatan admin tampil untuk dua-duanya -->
+				<div class="p-3 border rounded bg-gray-50 mt-4">
 					<p class="text-xs text-gray-500">Catatan Admin:</p>
 					<p class="text-sm whitespace-pre-wrap" v-html="adminNote"></p>
 				</div>
 			</div>
 
+			<!-- FOOTER -->
 			<div class="flex justify-end gap-3 mt-6">
-				<Button variant="secondary" @click="isConfirmLastStageOpen = false">Batal</Button>
+				<Button variant="secondary" @click="isConfirmLastStageOpen = false"> Batal </Button>
 
-				<!-- Execution -->
-				<Button :disabled="actionLoading" @click="onSubmitLastStage" variant="default" class="px-4 py-2">
-					{{ actionLoading ? "Memproses..." : "Ya, Terima" }}
+				<Button :disabled="actionLoading" @click="lastStageAction === 'approve' ? onSubmitLastStage() : fixStage()" :variant="lastStageAction === 'approve' ? 'default' : 'destructive'">
+					{{ actionLoading ? "Memproses..." : lastStageAction === "approve" ? "Ya, Terima" : "Ya, Tolak" }}
 				</Button>
 			</div>
 		</DialogContent>

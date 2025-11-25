@@ -111,8 +111,8 @@ const drawerRef = ref();
 					</TableCell>
 
 					<TableCell>
-						<span :class="getClassStatus(item.status)" class="px-2 py-1 rounded-full text-xs font-medium">
-							{{ getTranslateStatus(item.status) }}
+						<span :class="getClassStatus(item.lastLogStatus)" class="px-2 py-1 rounded-full text-xs font-medium">
+							{{ getTranslateStatus(item.lastLogStatus) }}
 						</span>
 					</TableCell>
 
