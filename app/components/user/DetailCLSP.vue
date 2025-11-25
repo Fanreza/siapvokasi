@@ -18,8 +18,6 @@ type TimelineRow = {
 	step: any;
 	stage1: Stage;
 	stage2: Stage;
-	stage3: Stage;
-	stage4: Stage;
 	[key: string]: any; // allow string indexing like row['stage' + n] in template
 };
 
@@ -101,8 +99,6 @@ const timeline = computed<TimelineRow[]>(() => {
 			step: detail.value?.currentStageNumber ?? 1,
 			stage1: stages[1] ?? null,
 			stage2: stages[2] ?? null,
-			stage3: stages[3] ?? null,
-			stage4: stages[4] ?? null,
 		},
 	];
 });
@@ -137,30 +133,22 @@ const onAllowSubmitDocs = (detail: any) => {
 	return detail.currentStageNumber === 0 && detail.requestLetterDocument && !detail.documentLink && detail.confirmationLetterDocument;
 };
 
+// on submit fix
 const isConfirmOpenFix = ref(false);
-const notes = ref("");
+const fixNote = ref("");
 const onSubmitApplicationFix = async () => {
 	try {
 		actionLoading.value = true;
 
 		await submitApplicationFix(applicationId, {
-			note: notes.value,
+			note: fixNote.value,
 		});
+
+		emit("close");
 	} finally {
 		actionLoading.value = false;
 	}
 };
-
-// Stage 4 additional link
-const stage4AdditionalLink = computed(() => {
-	if (!logs.value.length) return null;
-
-	const stage4Logs = logs.value.filter((l: any) => l.stageNumber === 4 && l.additionalLink);
-
-	if (!stage4Logs.length) return null;
-
-	return stage4Logs.at(-1).additionalLink;
-});
 </script>
 
 <template>
@@ -268,14 +256,12 @@ const stage4AdditionalLink = computed(() => {
 							<TableRow>
 								<TableHead class="w-32">Tahap 1</TableHead>
 								<TableHead class="w-32">Tahap 2</TableHead>
-								<TableHead class="w-32">Tahap 3</TableHead>
-								<TableHead class="w-32">Tahap 4</TableHead>
 							</TableRow>
 						</TableHeader>
 
 						<TableBody>
 							<TableRow v-for="row in timeline" :key="row.step">
-								<TableCell v-for="n in 4" :key="n">
+								<TableCell v-for="n in 2" :key="n">
 									<template v-if="row['stage' + n]">
 										<span class="px-3 py-1 rounded text-xs font-semibold block text-center" :class="getClassStatus((row['stage' + n] as any)?.logs?.at(-1)?.status)">
 											{{ (row["stage" + n] as any)?.logs?.at(-1)?.status }}
@@ -306,12 +292,11 @@ const stage4AdditionalLink = computed(() => {
 				</div>
 			</div>
 
-			<!-- Actions for fix docs stage 0 -->
-			<div v-if="detail?.currentStageNumber === 0 && detail?.lastLogStatus === 'NOT_FULFILLED' && detail?.documentLink" class="mt-6 border-t pt-6">
+			<div v-if="detail?.currentStageNumber > 0 && detail?.status === 'FIXING'" class="mt-6 border-t pt-6">
 				<div class="grid grid-cols-1 gap-10">
 					<div>
 						<Label class="text-sm text-gray-600">Catatan Perbaikan</Label>
-						<AdminAppEditor v-model="notes" rows="4" placeholder="Catatan untuk pengaju..." class="w-full rounded-md border p-2 bg-white"></AdminAppEditor>
+						<AdminAppEditor v-model="fixNote" rows="4" placeholder="Catatan untuk pengaju..." class="w-full rounded-md border p-2 bg-white"></AdminAppEditor>
 					</div>
 
 					<div class="flex gap-3 justify-end">
@@ -319,7 +304,7 @@ const stage4AdditionalLink = computed(() => {
 						<Button
 							variant="default"
 							class="px-4 py-2 rounded text-white"
-							:disabled="actionLoading || !notes"
+							:disabled="actionLoading"
 							@click="
 								() => {
 									isConfirmOpenFix = true;
@@ -330,13 +315,6 @@ const stage4AdditionalLink = computed(() => {
 						</Button>
 					</div>
 				</div>
-			</div>
-
-			<!-- Show link stage 4 finished -->
-			<div v-if="stage4AdditionalLink && detail?.status === 'COMPLETED' && detail?.currentStageNumber === 4" class="mt-6 p-4 border rounded bg-green-50">
-				<p class="text-sm text-gray-700">
-					Link RSKKNI: <a :href="stage4AdditionalLink" target="_blank" class="text-blue-600 underline">{{ stage4AdditionalLink }}</a>
-				</p>
 			</div>
 		</template>
 	</div>
@@ -373,7 +351,7 @@ const stage4AdditionalLink = computed(() => {
 				<!-- CATATAN ADMIN -->
 				<div class="p-3 border rounded bg-gray-50">
 					<p class="text-xs text-gray-500">Catatan Perbaikan:</p>
-					<p class="text-sm whitespace-pre-wrap" v-html="notes"></p>
+					<p class="text-sm whitespace-pre-wrap" v-html="fixNote"></p>
 				</div>
 			</div>
 

@@ -36,6 +36,8 @@ const onSheetClose = () => {
 	<Sheet v-model:open="open">
 		<SheetContent side="right" class="w-full sm:max-w-5xl h-full overflow-y-auto p-0">
 			<UserDetailSKKNI v-if="selectedId && selectedType === 'SKKNI'" :application-id="selectedId" @close="onSheetClose" />
+
+			<UserDetailCLSP v-else-if="selectedId && selectedType === 'CLSP'" :application-id="selectedId" @close="onSheetClose" />
 		</SheetContent>
 	</Sheet>
 </template>

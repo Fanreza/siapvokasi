@@ -54,10 +54,12 @@ export default defineNuxtPlugin((nuxtApp) => {
 		},
 
 		onResponse: ({ response }) => {
-			const message = (response._data as any)?.message || response.statusText;
-
-			if (message) {
-				toast.success(message);
+			const status = response.status;
+			if (status >= 200 && status < 300) {
+				const message = (response._data as any)?.message || response.statusText;
+				if (message) {
+					toast.success(message);
+				}
 			}
 		},
 

@@ -20,8 +20,6 @@ type TimelineRow = {
 	step: any;
 	stage1: Stage;
 	stage2: Stage;
-	stage3: Stage;
-	stage4: Stage;
 	[key: string]: any; // allow string indexing like row['stage' + n] in template
 };
 
@@ -91,8 +89,6 @@ const timeline = computed<TimelineRow[]>(() => {
 			step: detail.value?.currentStageNumber ?? 1,
 			stage1: stages[1] ?? null,
 			stage2: stages[2] ?? null,
-			stage3: stages[3] ?? null,
-			stage4: stages[4] ?? null,
 		},
 	];
 });
@@ -142,12 +138,14 @@ const stageAction = ref<"approve" | "fix" | null>(null);
 const stageConfirmOpen = ref(false);
 
 // ON APPROVE STAGE
+const additionalLink = ref("");
 const approveStage = async () => {
 	try {
 		actionLoading.value = true;
 
 		await approveApplicationNext(applicationId, {
 			note: adminNote.value,
+			additionalLink: additionalLink.value,
 		});
 
 		router.back();
@@ -232,34 +230,6 @@ const onSubmitApplicationFix = async () => {
 		actionLoading.value = false;
 	}
 };
-
-const isConfirmLastStageOpen = ref(false);
-const additionalLink = ref("");
-const onSubmitLastStage = async () => {
-	try {
-		actionLoading.value = true;
-
-		await approveApplicationNext(applicationId, {
-			note: adminNote.value,
-			additionalLink: additionalLink.value,
-		});
-
-		router.back();
-	} finally {
-		actionLoading.value = false;
-	}
-};
-
-// Stage 4 additional link
-const stage4AdditionalLink = computed(() => {
-	if (!logs.value.length) return null;
-
-	const stage4Logs = logs.value.filter((l: any) => l.stageNumber === 4 && l.additionalLink);
-
-	if (!stage4Logs.length) return null;
-
-	return stage4Logs.at(-1).additionalLink;
-});
 </script>
 
 <template>
@@ -340,7 +310,7 @@ const stage4AdditionalLink = computed(() => {
 									<!-- switch sesuai -->
 									<div class="flex items-center gap-2">
 										<label class="text-xs text-gray-600">Sesuai</label>
-										<Checkbox v-model="req.status" :disabled="detail?.currentStageNumber > 0 || updatingReq === req.requirementId || !detail?.documentLink" @click="onToggleRequirement(req, $event)" />
+										<Checkbox v-model="req.status" :disabled="updatingReq === req.requirementId || detail?.status === 'NEW'" @click="onToggleRequirement(req, $event)" />
 									</div>
 								</div>
 							</div>
@@ -360,8 +330,6 @@ const stage4AdditionalLink = computed(() => {
 						<TableRow>
 							<TableHead class="w-32">Tahap 1</TableHead>
 							<TableHead class="w-32">Tahap 2</TableHead>
-							<TableHead class="w-32">Tahap 3</TableHead>
-							<TableHead class="w-32">Tahap 4</TableHead>
 						</TableRow>
 					</TableHeader>
 
@@ -429,8 +397,13 @@ const stage4AdditionalLink = computed(() => {
 		</div>
 
 		<!-- Actions for stage start (detail?.currentStageNumber > 0) -->
-		<div v-if="detail?.currentStageNumber > 0 && detail?.currentStageNumber !== 4 && (detail?.status === 'PROCESSING' || detail?.status === 'FIXED')" class="mt-6 border-t pt-6">
+		<div v-if="detail?.currentStageNumber > 0 && (detail?.status === 'PROCESSING' || detail?.status === 'FIXED')" class="mt-6 border-t pt-6">
 			<div class="grid grid-cols-1 gap-10">
+				<div>
+					<Label class="text-sm text-gray-600">{{ detail?.currentStageNumber === 1 ? "Undangan Verifikasi Offline" : "Surat Rekomendasi" }}</Label>
+					<Input v-model="letterLink" type="text" placeholder="https://drive.google.com/..." class="w-full rounded-md border p-2 bg-white" />
+				</div>
+
 				<div>
 					<Label class="text-sm text-gray-600">Catatan Admin</Label>
 					<AdminAppEditor v-model="adminNote" rows="4" placeholder="Catatan untuk pengaju..." class="w-full rounded-md border p-2 bg-white"></AdminAppEditor>
@@ -483,11 +456,6 @@ const stage4AdditionalLink = computed(() => {
 			<!-- APPROVE FORM -->
 			<div v-if="selectedAction === 'approve'" class="space-y-6">
 				<div>
-					<Label class="text-sm text-gray-600">Lampiran (Link)</Label>
-					<Input v-model="letterLink" type="text" placeholder="https://drive.google.com/..." class="w-full rounded-md border p-2 bg-white" />
-				</div>
-
-				<div>
 					<Label class="text-sm text-gray-600">Catatan Admin</Label>
 					<AdminAppEditor v-model="adminNote" rows="4" placeholder="Catatan untuk pengaju..." class="w-full rounded-md border p-2 bg-white" />
 				</div>
@@ -508,69 +476,6 @@ const stage4AdditionalLink = computed(() => {
 					<Button variant="destructive" class="px-4 py-2" :disabled="actionLoading || !adminNote" @click="onVerifyDocs()"> Kirim </Button>
 				</div>
 			</div>
-		</div>
-
-		<!-- Actions for fix form -->
-		<div v-if="detail?.currentStageNumber > 0 && detail?.status === 'FIXING'" class="mt-6 border-t pt-6">
-			<div class="grid grid-cols-1 gap-10">
-				<div>
-					<Label class="text-sm text-gray-600">Catatan Admin</Label>
-					<AdminAppEditor v-model="adminNote" rows="4" placeholder="Catatan untuk pengaju..." class="w-full rounded-md border p-2 bg-white"></AdminAppEditor>
-				</div>
-
-				<div class="flex gap-3 justify-end">
-					<!-- PERBAIKI -->
-					<Button
-						variant="default"
-						class="px-4 py-2 rounded text-white"
-						:disabled="actionLoading || !adminNote"
-						@click="
-							() => {
-								isConfirmOpenFix = true;
-							}
-						"
-					>
-						Perbaiki
-					</Button>
-				</div>
-			</div>
-		</div>
-
-		<!-- Actions for last stage approve with additional link -->
-		<div v-if="detail?.currentStageNumber === 4 && (detail?.status === 'PROCESSING' || detail?.status === 'FIXED')" class="mt-6 border-t pt-6">
-			<div class="grid grid-cols-1 gap-10">
-				<div>
-					<Label class="text-sm text-gray-600">Lampiran RSKKNI</Label>
-					<Input v-model="additionalLink" type="text" placeholder="https://drive.google.com/..." class="w-full rounded-md border p-2 bg-white" />
-				</div>
-
-				<div>
-					<Label class="text-sm text-gray-600">Catatan Admin</Label>
-					<AdminAppEditor v-model="adminNote" rows="4" placeholder="Catatan untuk pengaju..." class="w-full rounded-md border p-2 bg-white"></AdminAppEditor>
-				</div>
-
-				<div class="flex gap-3 justify-end">
-					<!-- TERIMA -->
-					<Button
-						class="px-4 py-2 rounded text-white"
-						:disabled="actionLoading || !adminNote"
-						@click="
-							() => {
-								isConfirmLastStageOpen = true;
-							}
-						"
-					>
-						Terima
-					</Button>
-				</div>
-			</div>
-		</div>
-
-		<!-- Show link stage 4 finished -->
-		<div v-if="stage4AdditionalLink && detail?.status === 'COMPLETED' && detail?.currentStageNumber === 4" class="mt-6 p-4 border rounded bg-green-50">
-			<p class="text-sm text-gray-700">
-				Link RSKKNI: <a :href="stage4AdditionalLink" target="_blank" class="text-blue-600 underline">{{ stage4AdditionalLink }}</a>
-			</p>
 		</div>
 	</div>
 
@@ -673,37 +578,6 @@ const stage4AdditionalLink = computed(() => {
 
 				<Button :disabled="actionLoading" @click="onSubmitApplicationFix" variant="default">
 					{{ actionLoading ? "Memproses..." : "Ya, Perbaiki" }}
-				</Button>
-			</div>
-		</DialogContent>
-	</Dialog>
-
-	<!-- Confirm LAST STAGE -->
-	<Dialog v-model:open="isConfirmLastStageOpen">
-		<DialogContent class="max-w-md">
-			<DialogHeader>
-				<DialogTitle>Konfirmasi {{ confirmType === "approve" ? "Penerimaan" : "Penolakan" }}</DialogTitle>
-				<DialogDescription> Pastikan data berikut sudah benar sebelum melanjutkan. </DialogDescription>
-			</DialogHeader>
-
-			<div class="mt-4 space-y-4">
-				<div class="p-3 border rounded bg-gray-50">
-					<p class="text-xs text-gray-500">Link RSKKNI</p>
-					<p class="text-sm font-medium break-all">{{ additionalLink }}</p>
-				</div>
-
-				<div class="p-3 border rounded bg-gray-50">
-					<p class="text-xs text-gray-500">Catatan Admin:</p>
-					<p class="text-sm whitespace-pre-wrap" v-html="adminNote"></p>
-				</div>
-			</div>
-
-			<div class="flex justify-end gap-3 mt-6">
-				<Button variant="secondary" @click="isConfirmLastStageOpen = false">Batal</Button>
-
-				<!-- Execution -->
-				<Button :disabled="actionLoading" @click="onSubmitLastStage" variant="default" class="px-4 py-2">
-					{{ actionLoading ? "Memproses..." : "Ya, Terima" }}
 				</Button>
 			</div>
 		</DialogContent>

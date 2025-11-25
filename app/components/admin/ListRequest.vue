@@ -49,7 +49,10 @@ onMounted(() => {
 });
 
 const onNavigateDetail = (item: any) => {
-	navigateTo(`/admin/request/${item.id}`);
+	navigateTo({
+		path: `/admin/request/${item.id}`,
+		query: { type: item.service.name },
+	});
 };
 </script>
 

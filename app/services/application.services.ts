@@ -38,7 +38,7 @@ export const approveApplicationFirst = async (applicationId: number, payload: Ap
 };
 
 // APPROVE — NEXT STAGE (TANPA letterLink)
-export const approveApplicationNext = async (applicationId: number, payload: ApplicationApproveNextPayload) => {
+export const approveApplicationNext = async (applicationId: number, payload?: ApplicationApproveNextPayload) => {
 	const { $apiFetch } = useNuxtApp();
 	return await $apiFetch(`/applications/${applicationId}/approve`, {
 		method: "POST",
