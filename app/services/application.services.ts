@@ -74,7 +74,7 @@ export const submitApplicationFix = async (applicationId: number, payload: Appli
 };
 
 // SUBMIT DOCS ( USER )
-export const submitApplicationDocs = async (applicationId: number, payload: { documentLink: string }) => {
+export const submitApplicationDocs = async (applicationId: number, payload?: { documentLink: string }) => {
 	const { $apiFetch } = useNuxtApp();
 	return await $apiFetch(`/applications/${applicationId}/document`, {
 		method: "PATCH",

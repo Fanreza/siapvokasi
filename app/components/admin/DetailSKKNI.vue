@@ -236,6 +236,11 @@ const onSubmitApplicationFix = async () => {
 const isConfirmLastStageOpen = ref(false);
 const additionalLink = ref("");
 const onSubmitLastStage = async () => {
+	if (!additionalLink.value) {
+		toast.error("Link RSKKNI harus diisi.");
+		return;
+	}
+
 	try {
 		actionLoading.value = true;
 

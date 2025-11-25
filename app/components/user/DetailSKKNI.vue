@@ -138,14 +138,16 @@ const onAllowSubmitDocs = (detail: any) => {
 };
 
 const isConfirmOpenFix = ref(false);
-const notes = ref("");
+const docsEditedLink = ref("");
 const onSubmitApplicationFix = async () => {
 	try {
 		actionLoading.value = true;
 
-		await submitApplicationFix(applicationId, {
-			note: notes.value,
+		await submitApplicationDocs(applicationId, {
+			documentLink: docsEditedLink.value,
 		});
+
+		emit("close");
 	} finally {
 		actionLoading.value = false;
 	}
@@ -310,8 +312,8 @@ const stage4AdditionalLink = computed(() => {
 			<div v-if="detail?.currentStageNumber === 0 && detail?.lastLogStatus === 'NOT_FULFILLED' && detail?.documentLink" class="mt-6 border-t pt-6">
 				<div class="grid grid-cols-1 gap-10">
 					<div>
-						<Label class="text-sm text-gray-600">Catatan Perbaikan</Label>
-						<AdminAppEditor v-model="notes" rows="4" placeholder="Catatan untuk pengaju..." class="w-full rounded-md border p-2 bg-white"></AdminAppEditor>
+						<Label class="text-sm text-gray-700">Link Dokumen</Label>
+						<Input v-model="docsEditedLink" class="w-full p-2 border rounded" />
 					</div>
 
 					<div class="flex gap-3 justify-end">
@@ -319,14 +321,14 @@ const stage4AdditionalLink = computed(() => {
 						<Button
 							variant="default"
 							class="px-4 py-2 rounded text-white"
-							:disabled="actionLoading || !notes"
+							:disabled="actionLoading"
 							@click="
 								() => {
 									isConfirmOpenFix = true;
 								}
 							"
 						>
-							Perbaiki
+							Dilengkapi
 						</Button>
 					</div>
 				</div>
@@ -365,23 +367,15 @@ const stage4AdditionalLink = computed(() => {
 	<Dialog v-model:open="isConfirmOpenFix">
 		<DialogContent class="max-w-md">
 			<DialogHeader>
-				<DialogTitle> Konfirmasi Perbaikan </DialogTitle>
-				<DialogDescription> Pastikan data berikut benar. </DialogDescription>
+				<DialogTitle> Konfirmasi Kelengkapan Berkas </DialogTitle>
+				<DialogDescription> Pastikan berkas sudah lengkap untuk di verifikasi </DialogDescription>
 			</DialogHeader>
-
-			<div class="mt-4 space-y-4">
-				<!-- CATATAN ADMIN -->
-				<div class="p-3 border rounded bg-gray-50">
-					<p class="text-xs text-gray-500">Catatan Perbaikan:</p>
-					<p class="text-sm whitespace-pre-wrap" v-html="notes"></p>
-				</div>
-			</div>
 
 			<div class="flex justify-end gap-3 mt-6">
 				<Button variant="secondary" @click="isConfirmOpenFix = false"> Batal </Button>
 
 				<Button :disabled="actionLoading" @click="onSubmitApplicationFix" variant="default">
-					{{ actionLoading ? "Memproses..." : "Ya, Perbaiki" }}
+					{{ actionLoading ? "Memproses..." : "Ya, Sudah Lengkap" }}
 				</Button>
 			</div>
 		</DialogContent>
