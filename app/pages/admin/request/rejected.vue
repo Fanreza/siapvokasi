@@ -6,5 +6,5 @@ definePageMeta({
 </script>
 
 <template>
-	<AdminListRequest status="rejected" />
+	<AdminListRequest status="REJECTED" />
 </template>
