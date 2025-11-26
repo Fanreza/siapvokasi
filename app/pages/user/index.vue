@@ -27,22 +27,22 @@ const year = new Date().getFullYear();
 const stats = [
 	{
 		label: "Pengajuan Baru",
-		value: 8345,
+		value: 0,
 		color: "#1ea7fd",
 	},
 	{
 		label: "Pengajuan Proses",
-		value: 8336,
+		value: 0,
 		color: "#333a56",
 	},
 	{
 		label: "Pengajuan Perbaikan",
-		value: 8336,
+		value: 0,
 		color: "#feb633",
 	},
 	{
 		label: "Pengajuan Selesai",
-		value: 8345,
+		value: 0,
 		color: "#2ecc71",
 	},
 ];

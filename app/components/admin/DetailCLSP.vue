@@ -80,6 +80,11 @@ const timeline = computed<TimelineRow[]>(() => {
 			status: log.status,
 			note: log.note,
 			raw: log,
+			date: new Date(log.createdAt).toLocaleDateString("id-ID", {
+				day: "2-digit",
+				month: "long",
+				year: "numeric",
+			}),
 		});
 	}
 
@@ -230,6 +235,26 @@ const onSubmitApplicationFix = async () => {
 		actionLoading.value = false;
 	}
 };
+
+const stage1AdditionalLink = computed(() => {
+	if (!logs.value.length) return null;
+
+	const stage1Logs = logs.value.filter((l: any) => l.stageNumber === 1 && l.additionalLink);
+
+	if (!stage1Logs.length) return null;
+
+	return stage1Logs.at(-1).additionalLink;
+});
+
+const stage2AdditionalLink = computed(() => {
+	if (!logs.value.length) return null;
+
+	const stage2Logs = logs.value.filter((l: any) => l.stageNumber === 2 && l.additionalLink);
+
+	if (!stage2Logs.length) return null;
+
+	return stage2Logs.at(-1).additionalLink;
+});
 </script>
 
 <template>
@@ -255,8 +280,8 @@ const onSubmitApplicationFix = async () => {
 			<div class="bg-gray-50 rounded-xl p-6 space-y-6">
 				<div class="text-center">
 					<h3 class="text-gray-700 font-semibold mb-2">Status Berkas</h3>
-					<div class="px-4 py-2 rounded-lg font-bold text-sm" :class="getClassStatus(detail?.status)">
-						{{ getTranslateStatus(detail?.status) }}
+					<div class="px-4 py-2 rounded-lg font-bold text-sm" :class="getClassStatus(detail?.lastLogStatus)">
+						{{ getTranslateStatus(detail?.lastLogStatus) }}
 					</div>
 				</div>
 
@@ -338,7 +363,9 @@ const onSubmitApplicationFix = async () => {
 							<TableCell v-for="n in 4" :key="n">
 								<template v-if="row['stage' + n]">
 									<span class="px-3 py-1 rounded text-xs font-semibold block text-center" :class="getClassStatus((row['stage' + n] as any)?.logs?.at(-1)?.status)">
-										{{ (row["stage" + n] as any)?.logs?.at(-1)?.status }}
+										<p>{{ (row["stage" + n] as any)?.logs?.at(-1)?.date }}</p>
+
+										<p>{{ getTranslateStatus((row["stage" + n] as any)?.logs?.at(-1)?.status) }}</p>
 									</span>
 
 									<Button size="sm" variant="default" class="mt-2 text-xs w-full" @click="openLog('Tahap ' + n, (row['stage' + n] as any)?.logs)"> Lihat Log </Button>
@@ -350,101 +377,23 @@ const onSubmitApplicationFix = async () => {
 			</div>
 		</div>
 
+		<!-- Show link stage 4 finished -->
+		<div v-if="stage1AdditionalLink" class="mt-6 p-4 border rounded bg-green-50">
+			<p class="text-sm text-gray-700">
+				Link Surat Undangan Verifikasi <a :href="stage1AdditionalLink" target="_blank" class="text-blue-600 underline">{{ stage1AdditionalLink }}</a>
+			</p>
+		</div>
+
+		<!-- Show link stage 4 finished -->
+		<div v-if="stage2AdditionalLink" class="mt-6 p-4 border rounded bg-green-50">
+			<p class="text-sm text-gray-700">
+				Link Surat Rekomendasi <a :href="stage2AdditionalLink" target="_blank" class="text-blue-600 underline">{{ stage2AdditionalLink }}</a>
+			</p>
+		</div>
+
 		<!-- ACTIONS for approve Form -->
 		<div v-if="detail?.currentStageNumber === 0 && detail?.status === 'NEW' && !detail?.confirmationLetterDocument" class="mt-6 border-t pt-6">
-			<h3 class="text-gray-900 font-semibold mb-3">Terima Permohonan</h3>
-
-			<div class="grid grid-cols-1 gap-10">
-				<div>
-					<Label class="text-sm text-gray-600">Surat Penerimaan</Label>
-					<Input v-model="letterLink" type="text" placeholder="https://drive.google.com/..." class="w-full rounded-md border p-2 bg-white" />
-				</div>
-
-				<div>
-					<Label class="text-sm text-gray-600">Catatan Admin</Label>
-					<AdminAppEditor v-model="adminNote" rows="4" placeholder="Catatan untuk pengaju..." class="w-full rounded-md border p-2 bg-white"></AdminAppEditor>
-				</div>
-
-				<div class="flex gap-3 justify-end">
-					<Button
-						@click="
-							() => {
-								confirmType = 'reject';
-								isConfirmOpen = true;
-							}
-						"
-						:disabled="actionLoading || !letterLink || !adminNote"
-						variant="destructive"
-						class="px-4 py-2 rounded text-white"
-					>
-						Tolak
-					</Button>
-
-					<Button
-						@click="
-							() => {
-								confirmType = 'approve';
-								isConfirmOpen = true;
-							}
-						"
-						:disabled="actionLoading || !letterLink || !adminNote"
-						class="px-4 py-2 rounded text-white"
-					>
-						Terima
-					</Button>
-				</div>
-			</div>
-		</div>
-
-		<!-- Actions for stage start (detail?.currentStageNumber > 0) -->
-		<div v-if="detail?.currentStageNumber > 0 && (detail?.status === 'PROCESSING' || detail?.status === 'FIXED')" class="mt-6 border-t pt-6">
-			<div class="grid grid-cols-1 gap-10">
-				<div>
-					<Label class="text-sm text-gray-600">{{ detail?.currentStageNumber === 1 ? "Undangan Verifikasi Offline" : "Surat Rekomendasi" }}</Label>
-					<Input v-model="letterLink" type="text" placeholder="https://drive.google.com/..." class="w-full rounded-md border p-2 bg-white" />
-				</div>
-
-				<div>
-					<Label class="text-sm text-gray-600">Catatan Admin</Label>
-					<AdminAppEditor v-model="adminNote" rows="4" placeholder="Catatan untuk pengaju..." class="w-full rounded-md border p-2 bg-white"></AdminAppEditor>
-				</div>
-
-				<div class="flex gap-3 justify-end">
-					<!-- PERBAIKI -->
-					<Button
-						variant="destructive"
-						class="px-4 py-2 rounded text-white"
-						:disabled="actionLoading || !adminNote"
-						@click="
-							() => {
-								stageAction = 'fix';
-								stageConfirmOpen = true;
-							}
-						"
-					>
-						Perbaiki
-					</Button>
-
-					<!-- TERIMA -->
-					<Button
-						class="px-4 py-2 rounded text-white"
-						:disabled="actionLoading || !adminNote"
-						@click="
-							() => {
-								stageAction = 'approve';
-								stageConfirmOpen = true;
-							}
-						"
-					>
-						Terima
-					</Button>
-				</div>
-			</div>
-		</div>
-
-		<!-- ACTIONS: muncul hanya jika stage 0 dan status = NEW_DOCUMENTS -->
-		<div v-if="detail?.currentStageNumber === 0 && detail?.status === 'NEW_DOCUMENTS' && detail?.documentLink && detail?.lastLogStatus !== 'NOT_FULFILLED'" class="mt-6 border-t pt-6">
-			<h3 class="text-gray-900 font-semibold mb-3">Verifikasi Berkas</h3>
+			<h3 class="text-gray-900 font-semibold mb-3">Verifikasi Permohonan</h3>
 
 			<!-- TOGGLE BUTTON -->
 			<div class="flex gap-3 mb-6">
@@ -453,27 +402,105 @@ const onSubmitApplicationFix = async () => {
 				<Button :variant="selectedAction === 'reject' ? 'destructive' : 'secondary'" @click="selectedAction = 'reject'"> Tolak </Button>
 			</div>
 
-			<!-- APPROVE FORM -->
-			<div v-if="selectedAction === 'approve'" class="space-y-6">
+			<!-- FORM MUNCUL SETELAH PILIH -->
+			<div v-if="selectedAction" class="space-y-6">
+				<!-- TAMPILKAN LINK SURAT -->
+				<div>
+					<Label class="text-sm text-gray-600">
+						{{ selectedAction === "approve" ? "Surat Penerimaan" : "Surat Penolakan" }}
+					</Label>
+					<Input v-model="letterLink" type="text" placeholder="https://drive.google.com/..." class="w-full rounded-md border p-2 bg-white" />
+				</div>
+
+				<!-- CATATAN ADMIN -->
+				<div>
+					<Label class="text-sm text-gray-600">
+						{{ selectedAction === "approve" ? "Catatan Admin" : "Catatan Penolakan" }}
+					</Label>
+					<AdminAppEditor v-model="adminNote" rows="4" placeholder="Masukkan catatan..." class="w-full rounded-md border p-2 bg-white" />
+				</div>
+
+				<!-- BUTTON -->
+				<div class="flex justify-end">
+					<Button
+						class="px-4 py-2"
+						:variant="selectedAction === 'approve' ? 'default' : 'destructive'"
+						:disabled="actionLoading || !letterLink || !adminNote"
+						@click="
+							() => {
+								confirmType = selectedAction;
+								isConfirmOpen = true;
+							}
+						"
+					>
+						Kirim
+					</Button>
+				</div>
+			</div>
+		</div>
+
+		<!-- Actions for stage start -->
+		<div v-if="detail?.currentStageNumber > 0 && (detail?.status === 'PROCESSING' || detail?.status === 'FIXED')" class="mt-6 border-t pt-6">
+			<h3 class="text-gray-900 font-semibold mb-3">Aksi Tahap</h3>
+
+			<!-- TOGGLE -->
+			<div class="flex gap-3 mb-6">
+				<Button :variant="stageAction === 'approve' ? 'default' : 'secondary'" @click="stageAction = 'approve'"> Terima </Button>
+
+				<Button :variant="stageAction === 'fix' ? 'destructive' : 'secondary'" @click="stageAction = 'fix'"> Perbaiki </Button>
+			</div>
+
+			<!-- FORM -->
+			<div v-if="stageAction" class="space-y-6">
+				<!-- LINK SURAT -->
+				<div v-if="stageAction === 'approve'">
+					<Label class="text-sm text-gray-600">
+						{{ detail?.currentStageNumber === 1 ? "Undangan Verifikasi Offline" : "Surat Rekomendasi" }}
+					</Label>
+					<Input v-model="additionalLink" type="text" placeholder="https://drive.google.com/..." class="w-full rounded-md border p-2 bg-white" />
+				</div>
+
+				<!-- CATATAN ADMIN -->
 				<div>
 					<Label class="text-sm text-gray-600">Catatan Admin</Label>
 					<AdminAppEditor v-model="adminNote" rows="4" placeholder="Catatan untuk pengaju..." class="w-full rounded-md border p-2 bg-white" />
 				</div>
 
+				<!-- BUTTON -->
 				<div class="flex justify-end">
-					<Button class="px-4 py-2" :disabled="actionLoading || !letterLink || !adminNote" @click="onVerifyDocs()"> Kirim </Button>
+					<Button class="px-4 py-2" :variant="stageAction === 'approve' ? 'default' : 'destructive'" :disabled="actionLoading || !adminNote" @click="stageConfirmOpen = true"> Kirim </Button>
+				</div>
+			</div>
+		</div>
+
+		<!-- ACTIONS: muncul hanya jika stage 0 dan status = NEW_DOCUMENTS -->
+		<div v-if="detail?.currentStageNumber === 0 && detail?.status === 'NEW_DOCUMENTS' && detail?.documentLink && detail?.lastLogStatus !== 'NOT_FULFILLED'" class="mt-6 border-t pt-6">
+			<h3 class="text-gray-900 font-semibold mb-3">Verifikasi Berkas</h3>
+
+			<!-- TOGGLE -->
+			<div class="flex gap-3 mb-6">
+				<Button :variant="selectedAction === 'approve' ? 'default' : 'secondary'" @click="selectedAction = 'approve'"> Terima </Button>
+
+				<Button :variant="selectedAction === 'reject' ? 'destructive' : 'secondary'" @click="selectedAction = 'reject'"> Tolak </Button>
+			</div>
+
+			<!-- APPROVE FORM -->
+			<div v-if="selectedAction === 'approve'" class="space-y-6">
+				<Label class="text-sm text-gray-600">Catatan Admin</Label>
+				<AdminAppEditor v-model="adminNote" rows="4" placeholder="Catatan..." class="w-full rounded-md border p-2 bg-white" />
+
+				<div class="flex justify-end">
+					<Button class="px-4 py-2" :disabled="actionLoading || !adminNote" @click="onVerifyDocs()">Kirim</Button>
 				</div>
 			</div>
 
 			<!-- REJECT FORM -->
 			<div v-if="selectedAction === 'reject'" class="space-y-6">
-				<div>
-					<Label class="text-sm text-gray-600">Catatan Penolakan</Label>
-					<AdminAppEditor v-model="adminNote" rows="4" placeholder="Catatan untuk pengaju..." class="w-full rounded-md border p-2 bg-white" />
-				</div>
+				<Label class="text-sm text-gray-600">Catatan Penolakan</Label>
+				<AdminAppEditor v-model="adminNote" rows="4" placeholder="Catatan..." class="w-full rounded-md border p-2 bg-white" />
 
 				<div class="flex justify-end">
-					<Button variant="destructive" class="px-4 py-2" :disabled="actionLoading || !adminNote" @click="onVerifyDocs()"> Kirim </Button>
+					<Button variant="destructive" class="px-4 py-2" :disabled="actionLoading || !adminNote" @click="onVerifyDocs()">Kirim</Button>
 				</div>
 			</div>
 		</div>

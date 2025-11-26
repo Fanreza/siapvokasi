@@ -90,6 +90,11 @@ const timeline = computed<TimelineRow[]>(() => {
 			status: log.status,
 			note: log.note,
 			raw: log,
+			date: new Date(log.createdAt).toLocaleDateString("id-ID", {
+				day: "2-digit",
+				month: "long",
+				year: "numeric",
+			}),
 		});
 	}
 
@@ -149,6 +154,26 @@ const onSubmitApplicationFix = async () => {
 		actionLoading.value = false;
 	}
 };
+
+const stage1AdditionalLink = computed(() => {
+	if (!logs.value.length) return null;
+
+	const stage1Logs = logs.value.filter((l: any) => l.stageNumber === 1 && l.additionalLink);
+
+	if (!stage1Logs.length) return null;
+
+	return stage1Logs.at(-1).additionalLink;
+});
+
+const stage2AdditionalLink = computed(() => {
+	if (!logs.value.length) return null;
+
+	const stage2Logs = logs.value.filter((l: any) => l.stageNumber === 2 && l.additionalLink);
+
+	if (!stage2Logs.length) return null;
+
+	return stage2Logs.at(-1).additionalLink;
+});
 </script>
 
 <template>
@@ -181,8 +206,8 @@ const onSubmitApplicationFix = async () => {
 				<div class="p-6 bg-gray-50 rounded-xl">
 					<div class="text-center mb-6">
 						<h3 class="font-semibold text-gray-700">Status</h3>
-						<div class="px-4 py-2 mt-2 rounded text-sm font-bold" :class="getClassStatus(detail?.status)">
-							{{ getTranslateStatus(detail?.status) }}
+						<div class="px-4 py-2 mt-2 rounded text-sm font-bold" :class="getClassStatus(detail?.lastLogStatus)">
+							{{ getTranslateStatus(detail?.lastLogStatus) }}
 						</div>
 					</div>
 
@@ -264,7 +289,9 @@ const onSubmitApplicationFix = async () => {
 								<TableCell v-for="n in 2" :key="n">
 									<template v-if="row['stage' + n]">
 										<span class="px-3 py-1 rounded text-xs font-semibold block text-center" :class="getClassStatus((row['stage' + n] as any)?.logs?.at(-1)?.status)">
-											{{ (row["stage" + n] as any)?.logs?.at(-1)?.status }}
+											<p>{{ (row["stage" + n] as any)?.logs?.at(-1)?.date }}</p>
+
+											<p>{{ getTranslateStatus((row["stage" + n] as any)?.logs?.at(-1)?.status) }}</p>
 										</span>
 
 										<Button size="sm" variant="default" class="mt-2 text-xs w-full" @click="openLog('Tahap ' + n, (row['stage' + n] as any)?.logs)"> Lihat Log </Button>
@@ -274,6 +301,20 @@ const onSubmitApplicationFix = async () => {
 						</TableBody>
 					</Table>
 				</div>
+			</div>
+
+			<!-- Show link stage 4 finished -->
+			<div v-if="stage1AdditionalLink" class="mt-6 p-4 border rounded bg-green-50">
+				<p class="text-sm text-gray-700">
+					Link Surat Undangan Verifikasi <a :href="stage1AdditionalLink" target="_blank" class="text-blue-600 underline">{{ stage1AdditionalLink }}</a>
+				</p>
+			</div>
+
+			<!-- Show link stage 4 finished -->
+			<div v-if="stage2AdditionalLink" class="mt-6 p-4 border rounded bg-green-50">
+				<p class="text-sm text-gray-700">
+					Link Surat Rekomendasi <a :href="stage2AdditionalLink" target="_blank" class="text-blue-600 underline">{{ stage2AdditionalLink }}</a>
+				</p>
 			</div>
 
 			<!-- ACTIONS STAGE 0 -->
