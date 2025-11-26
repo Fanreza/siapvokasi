@@ -38,6 +38,8 @@ const onSheetClose = () => {
 			<UserDetailSKKNI v-if="selectedId && selectedType === 'SKKNI'" :application-id="selectedId" @close="onSheetClose" />
 
 			<UserDetailCLSP v-else-if="selectedId && selectedType === 'CLSP'" :application-id="selectedId" @close="onSheetClose" />
+
+			<UserDetailSKKK v-else-if="selectedId && selectedType === 'SKKK/SKKI'" :application-id="selectedId" @close="onSheetClose" />
 		</SheetContent>
 	</Sheet>
 </template>
