@@ -1,7 +1,7 @@
 <script setup lang="ts">
 defineProps<{
 	services: { label: string; value: string }[];
-	selected: string;
+	selected?: { label: string; value: string };
 }>();
 
 const emit = defineEmits<{
@@ -10,8 +10,6 @@ const emit = defineEmits<{
 }>();
 
 const onChange = (val: any) => {
-	console.log("Selected service:", val);
-
 	emit("update:selected", val);
 };
 </script>
@@ -29,13 +27,13 @@ const onChange = (val: any) => {
 				</SelectTrigger>
 
 				<SelectContent>
-					<SelectItem v-for="s in services" :key="s.value" :value="s.value">{{ s.label }}</SelectItem>
+					<SelectItem v-for="s in services" :key="s.value" :value="s">{{ s.label }}</SelectItem>
 				</SelectContent>
 			</Select>
 		</div>
 
 		<div class="flex justify-end pt-8">
-			<Button @click="$emit('next')" class="bg-blue-500 hover:bg-blue-600 text-white px-8 rounded-lg">Selanjutnya</Button>
+			<Button @click="$emit('next')" :disabled="!selected" class="bg-blue-500 hover:bg-blue-600 text-white px-8 rounded-lg">Selanjutnya</Button>
 		</div>
 	</div>
 </template>

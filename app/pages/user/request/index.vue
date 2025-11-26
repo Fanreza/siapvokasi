@@ -8,7 +8,7 @@ import { ref, onMounted } from "vue";
 import { getServices } from "~/services/service.services";
 
 const currentTab = ref("pilih-layanan");
-const selectedService = ref("");
+const selectedService = ref();
 
 const services = ref<{ value: string; label: string }[]>([]);
 const loadingServices = ref(false);
@@ -53,17 +53,17 @@ onMounted(async () => {
 
 		<Tabs v-model="currentTab" class="w-full">
 			<TabsList class="grid w-full grid-cols-3 mb-8 bg-transparent h-auto p-0 gap-4">
-				<TabsTrigger value="pilih-layanan" class="bg-none border-none shadow-none flex flex-col">
+				<TabsTrigger :disabled="true" value="pilih-layanan" class="bg-none border-none shadow-none flex flex-col data-disabled:opacity-100 data-disabled:text-inherit">
 					<span class="text-sm" :class="currentTab === 'pilih-layanan' ? 'font-bold text-[#6D6D80]' : 'text-gray-500'">PILIH LAYANAN</span>
 					<div class="w-full h-4 rounded-2xl bg-blue-500" :class="currentTab === 'pilih-layanan' ? 'opacity-100' : 'opacity-30'"></div>
 				</TabsTrigger>
 
-				<TabsTrigger value="daftar" class="bg-none border-none shadow-none flex flex-col">
+				<TabsTrigger :disabled="true" value="daftar" class="bg-none border-none shadow-none flex flex-col data-disabled:opacity-100 data-disabled:text-inherit">
 					<span class="text-sm" :class="currentTab === 'daftar' ? 'font-bold text-[#6D6D80]' : 'text-gray-500'">DAFTAR LAYANAN</span>
 					<div class="w-full h-4 rounded-2xl bg-blue-500" :class="currentTab === 'daftar' ? 'opacity-100' : 'opacity-30'"></div>
 				</TabsTrigger>
 
-				<TabsTrigger value="selesai" class="bg-none border-none shadow-none flex flex-col">
+				<TabsTrigger :disabled="true" value="selesai" class="bg-none border-none shadow-none flex flex-col data-disabled:opacity-100 data-disabled:text-inherit">
 					<span class="text-sm" :class="currentTab === 'selesai' ? 'font-bold text-[#6D6D80]' : 'text-gray-500'">SELESAI</span>
 					<div class="w-full h-4 rounded-2xl bg-blue-500" :class="currentTab === 'selesai' ? 'opacity-100' : 'opacity-30'"></div>
 				</TabsTrigger>

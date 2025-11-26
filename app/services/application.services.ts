@@ -18,6 +18,11 @@ export const getApplications = async (params?: any) => {
 	});
 };
 
+export const getPublicApplications = async (id?: any) => {
+	const { $apiFetch } = useNuxtApp();
+	return await $apiFetch<ApiResponse<ApplicationItem>>(`/public/applications/${id}`);
+};
+
 export const getApplicationDetail = async (id: number) => {
 	const { $apiFetch } = useNuxtApp();
 	return await $apiFetch(`/applications/${id}`);

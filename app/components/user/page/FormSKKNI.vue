@@ -8,6 +8,7 @@ import { useAuthStore } from "~/stores/auth";
 
 const props = defineProps<{
 	serviceId: number;
+	serviceName: string;
 }>();
 
 const emit = defineEmits<{
@@ -22,15 +23,15 @@ const loading = ref(false);
 const form = reactive({
 	namaBerkas: "",
 	nomorSurat: "",
-	namaInstansi: "",
+	namaInstansi: authStore.user?.instanceName || "",
 	namaLengkap: authStore.user?.name || "",
-	provinsi: authStore.user?.province || "",
-	kota: authStore.user?.district || "",
-	kecamatan: authStore.user?.subDistrict || "",
-	alamat: authStore.user?.address || "",
-	noTelp: authStore.user?.phone || "",
+	provinsi: authStore.user?.instanceProvince || "",
+	kota: authStore.user?.instanceDistrict || "",
+	kecamatan: authStore.user?.instanceSubDistrict || "",
+	alamat: authStore.user?.instanceAddress || "",
+	noTelp: authStore.user?.instancePhone || "",
 	suratPermohonan: "",
-	email: authStore.user?.email || "",
+	email: authStore.user?.instanceEmail || "",
 });
 
 // 🔥 Payload reactive yang langsung mengikuti form
@@ -75,7 +76,7 @@ const handleSubmit = async () => {
 
 <template>
 	<div class="space-y-6">
-		<p class="text-center text-gray-600 text-sm mb-4 font-bold">Form SKKNI</p>
+		<p class="text-center text-gray-600 text-sm mb-4 font-bold">Form {{ serviceName }}</p>
 		<p class="text-center text-gray-600 text-sm mb-4">Silahkan Lengkapi Data dan Berkas untuk Daftar Layanan!</p>
 
 		<div class="grid grid-cols-2 gap-6 mt-10">
@@ -120,12 +121,12 @@ const handleSubmit = async () => {
 			</div>
 
 			<div>
-				<label class="text-sm text-gray-600">No Telp</label>
+				<label class="text-sm text-gray-600">No Telp Lembaga</label>
 				<Input v-model="form.noTelp" placeholder="0812xxxx" class="bg-gray-50" />
 			</div>
 
 			<div>
-				<label class="text-sm text-gray-600">Email</label>
+				<label class="text-sm text-gray-600">Email Lembaga</label>
 				<Input v-model="form.email" type="email" placeholder="example@mail.com" class="bg-gray-50" />
 			</div>
 

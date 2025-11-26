@@ -1,7 +1,9 @@
 <script setup lang="ts">
-const props = defineProps({
-	selectedService: { type: String, default: "" }, // example: "1", "2", "3"
-});
+import type { ServiceItem } from "~/models/services.model";
+
+const props = defineProps<{
+	selectedService: { label: string; value: string };
+}>();
 
 const emit = defineEmits<{
 	(e: "previous"): void;
@@ -10,16 +12,8 @@ const emit = defineEmits<{
 }>();
 
 // serviceId dari string → number
-const serviceId = computed(() => Number(props.selectedService));
-
-// Mapping ID → form
-const FORM_MAP: Record<number, string> = {
-	1: "skkni",
-	2: "skknk",
-	3: "clsp",
-};
-
-const formType = computed(() => FORM_MAP[serviceId.value] || null);
+const serviceId = computed(() => Number(props.selectedService.value));
+const serviceName = computed(() => String(props.selectedService.label));
 
 const onSubmit = (payload: any) => {
 	emit("submit", payload);
@@ -30,7 +24,7 @@ const onSubmit = (payload: any) => {
 <template>
 	<div>
 		<!-- SKKNI -->
-		<UserPageFormSKKNI v-if="formType" @previous="$emit('previous')" @next="$emit('next')" @submit="onSubmit" :service-id="serviceId" />
+		<UserPageFormSKKNI v-if="serviceId" @previous="$emit('previous')" @next="$emit('next')" @submit="onSubmit" :service-id="serviceId" :service-name="serviceName" />
 
 		<!-- SKKNK -->
 		<!-- <UserPageFormSKKNK v-else-if="formType === 'skknk'" @previous="$emit('previous')" @submit="onSubmit" /> -->
