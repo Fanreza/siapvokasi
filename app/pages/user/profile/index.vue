@@ -16,13 +16,13 @@ const isEditing = ref(false);
 const user = reactive({
 	name: "",
 	email: "",
-	instansi: "",
-	namaLengkap: "",
-	provinsi: "",
-	kota: "",
-	kecamatan: "",
-	alamat: "",
-	noTelp: "",
+	instanceName: "",
+	instanceEmail: "",
+	instanceProvince: "",
+	instanceDistrict: "",
+	instanceSubDistrict: "",
+	instanceAddress: "",
+	instancePhone: "",
 	password: "",
 });
 
@@ -32,13 +32,13 @@ onMounted(() => {
 		user.name = auth.user.name;
 		user.email = auth.user.email;
 
-		user.instansi = auth.user.instanceName ?? "";
-		user.namaLengkap = auth.user.name;
-		user.provinsi = auth.user.province ?? "";
-		user.kota = auth.user.district ?? "";
-		user.kecamatan = auth.user.subDistrict ?? "";
-		user.alamat = auth.user.address ?? "";
-		user.noTelp = auth.user.phone ?? "";
+		user.instanceName = auth.user.instanceName ?? "";
+		user.instanceEmail = auth.user.instanceEmail ?? "";
+		user.instanceProvince = auth.user.instanceProvince ?? "";
+		user.instanceDistrict = auth.user.instanceDistrict ?? "";
+		user.instanceSubDistrict = auth.user.instanceSubDistrict ?? "";
+		user.instanceAddress = auth.user.instanceAddress ?? "";
+		user.instancePhone = auth.user.instancePhone ?? "";
 		user.password = "";
 	}
 });
@@ -50,15 +50,16 @@ const toggleEdit = () => (isEditing.value = !isEditing.value);
 const saveProfile = async () => {
 	try {
 		const payload = {
-			name: user.namaLengkap,
+			name: user.name,
 			email: user.email,
-			instanceName: user.instansi,
-			province: user.provinsi,
-			district: user.kota,
-			subDistrict: user.kecamatan,
-			address: user.alamat,
-			phone: user.noTelp,
-			password: user.password ? user.password : undefined,
+			instanceName: user.instanceName,
+			instanceEmail: user.instanceEmail,
+			instanceProvince: user.instanceProvince,
+			instanceDistrict: user.instanceDistrict,
+			instanceSubDistrict: user.instanceSubDistrict,
+			instanceAddress: user.instanceAddress,
+			instancePhone: user.instancePhone,
+			password: user.password || undefined,
 		};
 
 		await updateProfileService(payload);
@@ -116,6 +117,8 @@ const uploadAvatar = async () => {
 	try {
 		await uploadAvatarService(avatarFile.value);
 
+		avatarFile.value = null;
+
 		// Refresh user data
 		await auth.refreshUser();
 	} catch (err: any) {}
@@ -138,11 +141,10 @@ const uploadAvatar = async () => {
 						</label>
 					</div>
 
-					<!-- Upload button muncul hanya setelah file dipilih -->
 					<Button v-if="avatarFile" class="mt-4 bg-blue-600 text-white" @click="uploadAvatar"> Upload Avatar </Button>
 				</div>
 
-				<h2 class="text-xl font-semibold text-gray-800">{{ user.namaLengkap }}</h2>
+				<h2 class="text-xl font-semibold text-gray-800">{{ user.name }}</h2>
 				<div class="text-sm text-gray-500 flex items-center gap-2 mt-2">
 					<Icon name="mail" class="w-4 h-4 opacity-70" />
 					<span>{{ user.email }}</span>
@@ -154,7 +156,7 @@ const uploadAvatar = async () => {
 				</div>
 			</div>
 
-			<!-- BUTTON ACTION -->
+			<!-- EDIT BUTTONS -->
 			<div class="flex items-center gap-3">
 				<Button v-if="!isEditing" size="sm" class="bg-blue-500 hover:bg-blue-600 text-white" @click="toggleEdit"> Edit Profil </Button>
 
@@ -167,50 +169,57 @@ const uploadAvatar = async () => {
 
 		<hr class="border-gray-200 mb-6" />
 
-		<!-- FORM SECTION (ATAS) -->
+		<!-- FORM SECTION -->
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 			<div>
-				<label class="text-sm text-gray-600 mb-2 block">Nama Instansi</label>
-				<Input v-model="user.instansi" :readonly="!isEditing" class="bg-gray-50" />
+				<label class="text-sm text-gray-600 mb-2 block">Nama Lengkap</label>
+				<Input v-model="user.name" :readonly="!isEditing" class="bg-gray-50" />
 			</div>
 
 			<div>
-				<label class="text-sm text-gray-600 mb-2 block">Nama Lengkap</label>
-				<Input v-model="user.namaLengkap" :readonly="!isEditing" class="bg-gray-50" />
+				<label class="text-sm text-gray-600 mb-2 block">Email</label>
+				<Input v-model="user.email" :readonly="!isEditing" class="bg-gray-50" />
+			</div>
+
+			<div>
+				<label class="text-sm text-gray-600 mb-2 block">Nama Instansi</label>
+				<Input v-model="user.instanceName" :readonly="!isEditing" class="bg-gray-50" />
+			</div>
+
+			<div>
+				<label class="text-sm text-gray-600 mb-2 block">Email Instansi</label>
+				<Input v-model="user.instanceEmail" :readonly="!isEditing" class="bg-gray-50" />
 			</div>
 
 			<div>
 				<label class="text-sm text-gray-600 mb-2 block">Provinsi</label>
-				<Input v-model="user.provinsi" :readonly="!isEditing" class="bg-gray-50" />
+				<Input v-model="user.instanceProvince" :readonly="!isEditing" class="bg-gray-50" />
 			</div>
 
 			<div>
 				<label class="text-sm text-gray-600 mb-2 block">Kota</label>
-				<Input v-model="user.kota" :readonly="!isEditing" class="bg-gray-50" />
+				<Input v-model="user.instanceDistrict" :readonly="!isEditing" class="bg-gray-50" />
 			</div>
 
 			<div>
 				<label class="text-sm text-gray-600 mb-2 block">Kecamatan</label>
-				<Input v-model="user.kecamatan" :readonly="!isEditing" class="bg-gray-50" />
+				<Input v-model="user.instanceSubDistrict" :readonly="!isEditing" class="bg-gray-50" />
 			</div>
 
-			<div>
+			<div class="md:col-span-2">
 				<label class="text-sm text-gray-600 mb-2 block">Alamat Lengkap</label>
-				<Textarea v-model="user.alamat" rows="4" :readonly="!isEditing" class="bg-gray-50" />
+				<Textarea v-model="user.instanceAddress" rows="3" :readonly="!isEditing" class="bg-gray-50" />
 			</div>
 
 			<div>
 				<label class="text-sm text-gray-600 mb-2 block">No Telp</label>
-				<Input v-model="user.noTelp" :readonly="!isEditing" class="bg-gray-50" />
+				<Input v-model="user.instancePhone" :readonly="!isEditing" class="bg-gray-50" />
 			</div>
-
-			<div></div>
 		</div>
 
 		<hr class="border-gray-200 my-6" />
 
-		<!-- FORM SECTION (BAWAH) -->
-		<!-- CHANGE PASSWORD SECTION -->
+		<!-- PASSWORD SECTION -->
 		<div class="bg-gray-50 p-6 rounded-lg mt-8 border border-gray-200">
 			<h3 class="text-lg font-semibold text-gray-800 mb-4">Ganti Password</h3>
 

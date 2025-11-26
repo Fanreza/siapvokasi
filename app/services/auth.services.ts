@@ -45,7 +45,7 @@ export const resetPasswordService = async (payload: { token: string; password: s
 export const logoutService = async () => {
 	const { $apiFetch } = useNuxtApp();
 
-	return await $apiFetch<{ message: string }>("auth/clear-session", {
+	return await $apiFetch<{ message: string }>("auth/logout", {
 		method: "POST",
 	});
 };

@@ -12,12 +12,12 @@ export interface AuthUser {
 	avatar: string | null;
 	instanceName: string | null;
 	instanceEmail: string | null;
-	province: string | null;
-	district: string | null;
-	subDistrict: string | null;
-	address: string | null;
-	phone: string | null;
-
+	instanceProvince: string | null;
+	instanceCity: string | null;
+	instanceDistrict: string | null;
+	instanceSubDistrict: string | null;
+	instanceAddress: string | null;
+	instancePhone: string | null;
 	status: boolean;
 	createdAt: string;
 	updatedAt: string;
