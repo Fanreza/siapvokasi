@@ -39,6 +39,7 @@ const payload = computed<ApplicationRequest>(() => ({
 	applicationNumber: form.nomorSurat || null,
 	applicationDate: new Date().toISOString(),
 
+	instanceName: form.namaInstansi,
 	applicantName: form.namaLengkap,
 	applicantEmail: form.email, // bisa isi user.email dari Pinia
 	applicantPhone: form.noTelp,
