@@ -83,7 +83,7 @@ const submit = async () => {
 
 		<!-- RIGHT: ILLUSTRATION -->
 		<div class="hidden lg:flex flex-col items-center justify-center bg-[#EEF3FF] relative">
-			<h2 class="text-3xl font-bold text-gray-800 mb-8 text-center px-10 pt-5">Layanan Sistem Informasi Ajuan Pelacakan</h2>
+			<h2 class="text-3xl font-bold text-gray-800 mb-8 text-center px-10 pt-5">Layanan Standar, Inovasi, dan Akselerasi Pelayanan Vokasi</h2>
 
 			<img src="/images/sign.png" alt="Illustration" class="w-[80%] max-w-2xl object-contain" />
 		</div>

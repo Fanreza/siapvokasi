@@ -3,6 +3,7 @@ import { reactive, ref } from "vue";
 import { registerService } from "~/services/auth.services";
 import { toast } from "vue-sonner";
 import { useRouter } from "vue-router";
+import { Eye, EyeOff } from "lucide-vue-next";
 
 definePageMeta({
 	layout: false,
@@ -11,7 +12,7 @@ definePageMeta({
 const router = useRouter();
 const loading = ref(false);
 
-// 🔥 Tambahkan semua field yang dibutuhkan
+// FORM DATA
 const form = reactive({
 	email: "",
 	name: "",
@@ -29,6 +30,11 @@ const form = reactive({
 
 const showSuccess = ref(false);
 
+// Toggle password visibility
+const showPassword = ref(false);
+const showPasswordConfirmation = ref(false);
+
+// SUBMIT
 const submit = async () => {
 	if (!form.email || !form.name || !form.password || !form.passwordConfirmation) {
 		toast.error("Semua field wajib diisi");
@@ -128,12 +134,25 @@ const submit = async () => {
 					<!-- PASSWORD -->
 					<div class="grid gap-2">
 						<Label>Password</Label>
-						<Input type="password" v-model="form.password" placeholder="Masukkan Password" class="bg-gray-100 border-gray-200" />
+						<div class="relative">
+							<Input :type="showPassword ? 'text' : 'password'" v-model="form.password" placeholder="Masukkan Password" class="bg-gray-100 border-gray-200 pr-10" />
+							<button type="button" class="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600" @click="showPassword = !showPassword">
+								<Eye v-if="!showPassword" class="w-4 h-4" />
+								<EyeOff v-else class="w-4 h-4" />
+							</button>
+						</div>
 					</div>
 
+					<!-- PASSWORD CONFIRM -->
 					<div class="grid gap-2">
 						<Label>Masukkan Ulang Password</Label>
-						<Input type="password" v-model="form.passwordConfirmation" placeholder="Ulangi Password" class="bg-gray-100 border-gray-200" />
+						<div class="relative">
+							<Input :type="showPasswordConfirmation ? 'text' : 'password'" v-model="form.passwordConfirmation" placeholder="Ulangi Password" class="bg-gray-100 border-gray-200 pr-10" />
+							<button type="button" class="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600" @click="showPasswordConfirmation = !showPasswordConfirmation">
+								<Eye v-if="!showPasswordConfirmation" class="w-4 h-4" />
+								<EyeOff v-else class="w-4 h-4" />
+							</button>
+						</div>
 					</div>
 
 					<!-- SUBMIT -->
@@ -150,7 +169,7 @@ const submit = async () => {
 
 		<!-- RIGHT IMAGE -->
 		<div class="hidden lg:flex flex-col items-center justify-center bg-[#EEF3FF]">
-			<h2 class="text-3xl font-bold text-gray-800 mb-8 text-center px-10 pt-5">Layanan Sistem Informasi Ajuan Pelacakan</h2>
+			<h2 class="text-3xl font-bold text-gray-800 mb-8 text-center px-10 pt-5">Layanan Standar, Inovasi, dan Akselerasi Pelayanan Vokasi</h2>
 			<img src="/images/sign.png" class="w-[80%] max-w-2xl object-contain" />
 		</div>
 	</div>

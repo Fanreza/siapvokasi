@@ -3,6 +3,7 @@ import { reactive, ref, onMounted } from "vue";
 import { useAuthStore } from "~/stores/auth";
 import { updateProfileService, changePasswordService, uploadAvatarService } from "~/services/profile.services";
 import { toast } from "vue-sonner";
+import { Eye, EyeOff } from "lucide-vue-next";
 
 definePageMeta({
 	layout: "user",
@@ -12,7 +13,11 @@ definePageMeta({
 const auth = useAuthStore();
 const isEditing = ref(false);
 
-// FORM DATA (reactive)
+// Toggle show/hide password
+const showOldPassword = ref(false);
+const showNewPassword = ref(false);
+
+// FORM DATA
 const user = reactive({
 	name: "",
 	email: "",
@@ -26,12 +31,11 @@ const user = reactive({
 	password: "",
 });
 
-// Load data dari auth store ketika page masuk
+// Load data when mounted
 onMounted(() => {
 	if (auth.user) {
 		user.name = auth.user.name;
 		user.email = auth.user.email;
-
 		user.instanceName = auth.user.instanceName ?? "";
 		user.instanceEmail = auth.user.instanceEmail ?? "";
 		user.instanceProvince = auth.user.instanceProvince ?? "";
@@ -43,10 +47,10 @@ onMounted(() => {
 	}
 });
 
-// toggle edit / cancel
+// Edit toggle
 const toggleEdit = () => (isEditing.value = !isEditing.value);
 
-// SAVE TO BACKEND
+// Save profile
 const saveProfile = async () => {
 	try {
 		const payload = {
@@ -63,19 +67,19 @@ const saveProfile = async () => {
 		};
 
 		await updateProfileService(payload);
-
-		// refresh store
 		await auth.refreshUser();
 
 		isEditing.value = false;
-	} catch (err: any) {}
+	} catch (err) {}
 };
 
+// Password change form
 const passwordForm = reactive({
 	oldPassword: "",
 	newPassword: "",
 });
 
+// Submit password change
 const changePassword = async () => {
 	if (!passwordForm.oldPassword || !passwordForm.newPassword) {
 		return toast.error("Password lama dan baru wajib diisi");
@@ -93,9 +97,10 @@ const changePassword = async () => {
 
 		passwordForm.oldPassword = "";
 		passwordForm.newPassword = "";
-	} catch (err: any) {}
+	} catch (err) {}
 };
 
+// Avatar handling
 const avatarPreview = ref<string | null>(null);
 const avatarFile = ref<File | null>(null);
 
@@ -104,8 +109,8 @@ const handleAvatarSelect = (e: Event) => {
 	if (!target.files?.length) return;
 
 	const file = target.files[0];
-	avatarFile.value = file!;
-	avatarPreview.value = URL.createObjectURL(file!);
+	avatarFile.value = file;
+	avatarPreview.value = URL.createObjectURL(file);
 };
 
 const uploadAvatar = async () => {
@@ -118,10 +123,8 @@ const uploadAvatar = async () => {
 		await uploadAvatarService(avatarFile.value);
 
 		avatarFile.value = null;
-
-		// Refresh user data
 		await auth.refreshUser();
-	} catch (err: any) {}
+	} catch (err) {}
 };
 </script>
 
@@ -145,6 +148,7 @@ const uploadAvatar = async () => {
 				</div>
 
 				<h2 class="text-xl font-semibold text-gray-800">{{ user.name }}</h2>
+
 				<div class="text-sm text-gray-500 flex items-center gap-2 mt-2">
 					<Icon name="mail" class="w-4 h-4 opacity-70" />
 					<span>{{ user.email }}</span>
@@ -156,7 +160,7 @@ const uploadAvatar = async () => {
 				</div>
 			</div>
 
-			<!-- EDIT BUTTONS -->
+			<!-- EDIT BUTTON -->
 			<div class="flex items-center gap-3">
 				<Button v-if="!isEditing" size="sm" class="bg-blue-500 hover:bg-blue-600 text-white" @click="toggleEdit"> Edit Profil </Button>
 
@@ -169,7 +173,7 @@ const uploadAvatar = async () => {
 
 		<hr class="border-gray-200 mb-6" />
 
-		<!-- FORM SECTION -->
+		<!-- PROFILE FORM -->
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 			<div>
 				<label class="text-sm text-gray-600 mb-2 block">Nama Lengkap</label>
@@ -224,14 +228,32 @@ const uploadAvatar = async () => {
 			<h3 class="text-lg font-semibold text-gray-800 mb-4">Ganti Password</h3>
 
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+				<!-- PASSWORD LAMA -->
 				<div>
 					<label class="text-sm text-gray-600 mb-2 block">Password Lama</label>
-					<Input v-model="passwordForm.oldPassword" type="password" class="bg-white" />
+
+					<div class="relative">
+						<Input :type="showOldPassword ? 'text' : 'password'" v-model="passwordForm.oldPassword" class="bg-white pr-10" />
+
+						<button type="button" class="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600" @click="showOldPassword = !showOldPassword">
+							<Eye v-if="!showOldPassword" class="w-4 h-4" />
+							<EyeOff v-else class="w-4 h-4" />
+						</button>
+					</div>
 				</div>
 
+				<!-- PASSWORD BARU -->
 				<div>
 					<label class="text-sm text-gray-600 mb-2 block">Password Baru</label>
-					<Input v-model="passwordForm.newPassword" type="password" class="bg-white" />
+
+					<div class="relative">
+						<Input :type="showNewPassword ? 'text' : 'password'" v-model="passwordForm.newPassword" class="bg-white pr-10" />
+
+						<button type="button" class="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600" @click="showNewPassword = !showNewPassword">
+							<Eye v-if="!showNewPassword" class="w-4 h-4" />
+							<EyeOff v-else class="w-4 h-4" />
+						</button>
+					</div>
 				</div>
 			</div>
 
