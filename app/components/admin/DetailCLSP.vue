@@ -51,7 +51,7 @@ const leftInfo = computed(() => {
 		{ label: "Jenis Layanan", value: detail.value.service?.name },
 		{ label: "Nama Pengajuan", value: detail.value.applicationName },
 		{ label: "Nama Pengusul", value: detail.value.applicantName },
-		{ label: "Nama Instansi", value: detail.value.institution || "-" },
+		{ label: "Nama Instansi", value: detail.value.instanceName || "-" },
 		{ label: "Alamat", value: detail.value.applicantAddress },
 		{
 			label: "Tanggal Surat",
@@ -263,7 +263,7 @@ const stage2AdditionalLink = computed(() => {
 
 		<!-- HEADER -->
 		<div class="flex items-center gap-2 pb-4 border-b">
-			<span class="text-blue-600 font-bold text-lg">{{ detail?.applicationNumber }}</span>
+			<span class="text-blue-600 font-bold text-lg">{{ detail?.code }}</span>
 		</div>
 
 		<div class="grid md:grid-cols-2 gap-6">
@@ -319,7 +319,7 @@ const stage2AdditionalLink = computed(() => {
 					</AccordionItem>
 
 					<!-- REQUIREMENTS -->
-					<AccordionItem value="requirements">
+					<AccordionItem value="requirements" v-if="detail?.status !== 'NEW'">
 						<AccordionTrigger class="font-semibold text-gray-700"> Kelengkapan Dokumen </AccordionTrigger>
 
 						<AccordionContent>
@@ -332,9 +332,9 @@ const stage2AdditionalLink = computed(() => {
 										<p class="font-medium text-sm">{{ req.requirement.description }}</p>
 									</div>
 
-									<!-- switch sesuai -->
+									<!-- switch Ada -->
 									<div class="flex items-center gap-2">
-										<label class="text-xs text-gray-600">Sesuai</label>
+										<label class="text-xs text-gray-600">Ada</label>
 										<Checkbox v-model="req.status" :disabled="updatingReq === req.requirementId || detail?.status === 'NEW'" @click="onToggleRequirement(req, $event)" />
 									</div>
 								</div>
@@ -377,18 +377,34 @@ const stage2AdditionalLink = computed(() => {
 			</div>
 		</div>
 
-		<!-- Show link stage 4 finished -->
-		<div v-if="stage1AdditionalLink" class="mt-6 p-4 border rounded bg-green-50">
-			<p class="text-sm text-gray-700">
-				Link Surat Undangan Verifikasi <a :href="stage1AdditionalLink" target="_blank" class="text-blue-600 underline">{{ stage1AdditionalLink }}</a>
-			</p>
+		<!-- Show Acceptance Link -->
+		<div v-if="detail?.confirmationLetterDocument" class="mt-6 flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm">
+			<div class="flex flex-col">
+				<p class="font-medium text-gray-800 text-sm">Dokumen Surat Penerimaan</p>
+				<p class="text-xs text-gray-500">{{ detail?.confirmationLetterDocument }}</p>
+			</div>
+
+			<a :href="detail?.confirmationLetterDocument" target="_blank" class="px-4 py-2 bg-blue-600 text-white text-xs rounded-lg font-semibold shadow hover:bg-blue-700 transition"> DOWNLOAD </a>
 		</div>
 
 		<!-- Show link stage 4 finished -->
-		<div v-if="stage2AdditionalLink" class="mt-6 p-4 border rounded bg-green-50">
-			<p class="text-sm text-gray-700">
-				Link Surat Rekomendasi <a :href="stage2AdditionalLink" target="_blank" class="text-blue-600 underline">{{ stage2AdditionalLink }}</a>
-			</p>
+		<div v-if="stage1AdditionalLink" class="mt-6 flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm">
+			<div class="flex flex-col">
+				<p class="font-medium text-gray-800 text-sm">Surat Undangan Verifikasi</p>
+				<p class="text-xs text-gray-500">{{ stage1AdditionalLink }}</p>
+			</div>
+
+			<a :href="stage1AdditionalLink" target="_blank" class="px-4 py-2 bg-blue-600 text-white text-xs rounded-lg font-semibold shadow hover:bg-blue-700 transition"> DOWNLOAD </a>
+		</div>
+
+		<!-- Show link stage 4 finished -->
+		<div v-if="stage2AdditionalLink" class="mt-6 flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm">
+			<div class="flex flex-col">
+				<p class="font-medium text-gray-800 text-sm">Surat Rekomendasi</p>
+				<p class="text-xs text-gray-500">{{ stage2AdditionalLink }}</p>
+			</div>
+
+			<a :href="stage2AdditionalLink" target="_blank" class="px-4 py-2 bg-blue-600 text-white text-xs rounded-lg font-semibold shadow hover:bg-blue-700 transition"> DOWNLOAD </a>
 		</div>
 
 		<!-- ACTIONS for approve Form -->
@@ -522,7 +538,7 @@ const stage2AdditionalLink = computed(() => {
 						{{ getTranslateStatus(log.status) }}
 					</p>
 
-					<p class="text-xs text-gray-600 mt-1" v-html="log.note"></p>
+					<p class="text-xs text-gray-600 mt-1 whitespace-pre-wrap break-all wrap-anywhere" v-html="log.note"></p>
 				</div>
 			</div>
 		</DialogContent>
@@ -542,9 +558,9 @@ const stage2AdditionalLink = computed(() => {
 					<p class="text-sm font-medium break-all">{{ letterLink }}</p>
 				</div>
 
-				<div class="p-3 border rounded bg-gray-50">
+				<div class="p-3 border rounded bg-gray-50 mt-4">
 					<p class="text-xs text-gray-500">Catatan Admin:</p>
-					<p class="text-sm whitespace-pre-wrap" v-html="adminNote"></p>
+					<div class="text-sm whitespace-pre-wrap break-all wrap-anywhere" v-html="adminNote"></div>
 				</div>
 			</div>
 
@@ -568,9 +584,9 @@ const stage2AdditionalLink = computed(() => {
 
 			<div class="mt-4 space-y-4">
 				<!-- CATATAN ADMIN -->
-				<div class="p-3 border rounded bg-gray-50">
+				<div class="p-3 border rounded bg-gray-50 mt-4">
 					<p class="text-xs text-gray-500">Catatan Admin:</p>
-					<p class="text-sm whitespace-pre-wrap" v-html="adminNote"></p>
+					<div class="text-sm whitespace-pre-wrap break-all wrap-anywhere" v-html="adminNote"></div>
 				</div>
 			</div>
 
@@ -594,9 +610,9 @@ const stage2AdditionalLink = computed(() => {
 
 			<div class="mt-4 space-y-4">
 				<!-- CATATAN ADMIN -->
-				<div class="p-3 border rounded bg-gray-50">
+				<div class="p-3 border rounded bg-gray-50 mt-4">
 					<p class="text-xs text-gray-500">Catatan Admin:</p>
-					<p class="text-sm whitespace-pre-wrap" v-html="adminNote"></p>
+					<div class="text-sm whitespace-pre-wrap break-all wrap-anywhere" v-html="adminNote"></div>
 				</div>
 			</div>
 

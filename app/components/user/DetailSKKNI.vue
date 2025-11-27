@@ -60,7 +60,7 @@ const leftInfo = computed(() => {
 		{ label: "Jenis Layanan", value: detail.value.service?.name },
 		{ label: "Nama Pengajuan", value: detail.value.applicationName },
 		{ label: "Nama Pengusul", value: detail.value.applicantName },
-		{ label: "Nama Instansi", value: detail.value.institution || "-" },
+		{ label: "Nama Instansi", value: detail.value.instanceName || "-" },
 		{ label: "Alamat", value: detail.value.applicantAddress },
 		{
 			label: "Tanggal Surat",
@@ -185,7 +185,8 @@ const stage4AdditionalLink = computed(() => {
 		</div>
 
 		<template v-else>
-			<h2 class="font-semibold text-xl">{{ detail?.applicationNumber }}</h2>
+			Ada
+			<h2 class="font-semibold text-xl">{{ detail?.code }}</h2>
 
 			<div class="grid md:grid-cols-2 gap-6">
 				<!-- LEFT -->
@@ -239,7 +240,7 @@ const stage4AdditionalLink = computed(() => {
 						</AccordionItem>
 
 						<!-- REQUIREMENTS -->
-						<AccordionItem value="requirements">
+						<AccordionItem value="requirements" v-if="detail?.status !== 'NEW'">
 							<AccordionTrigger class="font-semibold text-gray-700"> Kelengkapan Dokumen </AccordionTrigger>
 
 							<AccordionContent>
@@ -252,9 +253,9 @@ const stage4AdditionalLink = computed(() => {
 											<p class="font-medium text-sm">{{ req.requirement.description }}</p>
 										</div>
 
-										<!-- switch sesuai -->
+										<!-- switch Ada -->
 										<div class="flex items-center gap-2">
-											<label class="text-xs text-gray-600">Sesuai</label>
+											<label class="text-xs text-gray-600">Ada</label>
 											<Checkbox v-model="req.status" disabled />
 										</div>
 									</div>
@@ -297,6 +298,16 @@ const stage4AdditionalLink = computed(() => {
 						</TableBody>
 					</Table>
 				</div>
+			</div>
+
+			<!-- Show Acceptance Link -->
+			<div v-if="detail?.confirmationLetterDocument" class="mt-6 flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm">
+				<div class="flex flex-col">
+					<p class="font-medium text-gray-800 text-sm">Surat Penerimaan</p>
+					<p class="text-xs text-gray-500">{{ detail?.confirmationLetterDocument }}</p>
+				</div>
+
+				<a :href="detail?.confirmationLetterDocument" target="_blank" class="px-4 py-2 bg-blue-600 text-white text-xs rounded-lg font-semibold shadow hover:bg-blue-700 transition"> DOWNLOAD </a>
 			</div>
 
 			<!-- ACTIONS STAGE 0 -->
@@ -342,10 +353,13 @@ const stage4AdditionalLink = computed(() => {
 			</div>
 
 			<!-- Show link stage 4 finished -->
-			<div v-if="stage4AdditionalLink && detail?.status === 'COMPLETED' && detail?.currentStageNumber === 4" class="mt-6 p-4 border rounded bg-green-50">
-				<p class="text-sm text-gray-700">
-					Link SKKNI <a :href="stage4AdditionalLink" target="_blank" class="text-blue-600 underline">{{ stage4AdditionalLink }}</a>
-				</p>
+			<div v-if="stage4AdditionalLink && detail?.status === 'COMPLETED' && detail?.currentStageNumber === 4" class="mt-6 flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm">
+				<div class="flex flex-col">
+					<p class="font-medium text-gray-800 text-sm">Dokumen SKKNI Final</p>
+					<p class="text-xs text-gray-500">{{ stage4AdditionalLink }}</p>
+				</div>
+
+				<a :href="stage4AdditionalLink" target="_blank" class="px-4 py-2 bg-blue-600 text-white text-xs rounded-lg font-semibold shadow hover:bg-blue-700 transition"> DOWNLOAD </a>
 			</div>
 		</template>
 	</div>
@@ -366,7 +380,7 @@ const stage4AdditionalLink = computed(() => {
 						{{ getTranslateStatus(log.status) }}
 					</p>
 
-					<p class="text-xs text-gray-600 mt-1" v-html="log.note"></p>
+					<p class="text-xs text-gray-600 mt-1 whitespace-pre-wrap break-all wrap-anywhere" v-html="log.note"></p>
 				</div>
 			</div>
 		</DialogContent>

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { ChevronRight, FilePlus, Home, Box, CheckCircle, RefreshCcw, Users } from "lucide-vue-next";
+import { useAuthStore } from "~/stores/auth";
 
+const auth = useAuthStore();
 const route = useRoute();
 const openDropdown = ref<string | null>(null);
 
@@ -44,15 +46,6 @@ const navItems = [
 	{ label: "Pengajuan Selesai", to: "/admin/request/done", icon: CheckCircle },
 
 	{ label: "Pengajuan Ditolak", to: "/admin/request/rejected", icon: CheckCircle },
-
-	{
-		label: "User",
-		icon: Users,
-		children: [
-			{ label: "Data User", to: "/admin/user" },
-			{ label: "Data Role", to: "/admin/role" },
-		],
-	},
 ];
 </script>
 
@@ -102,6 +95,37 @@ const navItems = [
 							</SidebarMenuButton>
 						</SidebarMenuItem>
 					</template>
+
+					<!-- USER MENU (Hanya Superadmin) -->
+					<SidebarMenuItem v-if="auth.user?.roles[0]?.name === 'SUPERADMIN'">
+						<Collapsible as-child class="group/collapsible">
+							<SidebarMenuItem>
+								<CollapsibleTrigger as-child>
+									<SidebarMenuButton :tooltip="'User'" class="text-[#888C9F] py-6">
+										<Users class="h-4 w-4" />
+										<span>User</span>
+										<ChevronRight class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+									</SidebarMenuButton>
+								</CollapsibleTrigger>
+
+								<CollapsibleContent>
+									<SidebarMenuSub>
+										<SidebarMenuSubItem>
+											<SidebarMenuSubButton as-child>
+												<NuxtLink to="/admin/user" class="rounded-md px-5 py-6 text-sm font-medium text-[#888C9F]"> Data User </NuxtLink>
+											</SidebarMenuSubButton>
+										</SidebarMenuSubItem>
+
+										<SidebarMenuSubItem>
+											<SidebarMenuSubButton as-child>
+												<NuxtLink to="/admin/role" class="rounded-md px-5 py-6 text-sm font-medium text-[#888C9F]"> Data Role </NuxtLink>
+											</SidebarMenuSubButton>
+										</SidebarMenuSubItem>
+									</SidebarMenuSub>
+								</CollapsibleContent>
+							</SidebarMenuItem>
+						</Collapsible>
+					</SidebarMenuItem>
 				</SidebarMenu>
 			</SidebarGroup>
 		</SidebarContent>

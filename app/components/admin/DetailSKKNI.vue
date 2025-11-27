@@ -53,7 +53,7 @@ const leftInfo = computed(() => {
 		{ label: "Jenis Layanan", value: detail.value.service?.name },
 		{ label: "Nama Pengajuan", value: detail.value.applicationName },
 		{ label: "Nama Pengusul", value: detail.value.applicantName },
-		{ label: "Nama Instansi", value: detail.value.institution || "-" },
+		{ label: "Nama Instansi", value: detail.value.instanceName || "-" },
 		{ label: "Alamat", value: detail.value.applicantAddress },
 		{
 			label: "Tanggal Surat",
@@ -244,7 +244,7 @@ const lastStageAction = ref<"approve" | "reject" | null>(null);
 
 const onSubmitLastStage = async () => {
 	if (!additionalLink.value) {
-		toast.error("Link RSKKNI harus diisi.");
+		toast.error("Link SKKNI harus diisi.");
 		return;
 	}
 
@@ -281,7 +281,7 @@ const stage4AdditionalLink = computed(() => {
 
 		<!-- HEADER -->
 		<div class="flex items-center gap-2 pb-4 border-b">
-			<span class="text-blue-600 font-bold text-lg">{{ detail?.applicationNumber }}</span>
+			<span class="text-blue-600 font-bold text-lg">{{ detail?.code }}</span>
 		</div>
 
 		<div class="grid md:grid-cols-2 gap-6">
@@ -337,7 +337,7 @@ const stage4AdditionalLink = computed(() => {
 					</AccordionItem>
 
 					<!-- REQUIREMENTS -->
-					<AccordionItem value="requirements">
+					<AccordionItem value="requirements" v-if="detail?.status !== 'NEW'">
 						<AccordionTrigger class="font-semibold text-gray-700"> Kelengkapan Dokumen </AccordionTrigger>
 
 						<AccordionContent>
@@ -350,9 +350,9 @@ const stage4AdditionalLink = computed(() => {
 										<p class="font-medium text-sm">{{ req.requirement.description }}</p>
 									</div>
 
-									<!-- switch sesuai -->
+									<!-- switch Ada -->
 									<div class="flex items-center gap-2">
-										<label class="text-xs text-gray-600">Sesuai</label>
+										<label class="text-xs text-gray-600">Ada</label>
 										<Checkbox v-model="req.status" :disabled="detail?.currentStageNumber > 0 || updatingReq === req.requirementId || !detail?.documentLink" @click="onToggleRequirement(req, $event)" />
 									</div>
 								</div>
@@ -395,6 +395,16 @@ const stage4AdditionalLink = computed(() => {
 					</TableBody>
 				</Table>
 			</div>
+		</div>
+
+		<!-- Show Acceptance Link -->
+		<div v-if="detail?.confirmationLetterDocument" class="mt-6 flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm">
+			<div class="flex flex-col">
+				<p class="font-medium text-gray-800 text-sm">Dokumen Surat Penerimaan</p>
+				<p class="text-xs text-gray-500">{{ detail?.confirmationLetterDocument }}</p>
+			</div>
+
+			<a :href="detail?.confirmationLetterDocument" target="_blank" class="px-4 py-2 bg-blue-600 text-white text-xs rounded-lg font-semibold shadow hover:bg-blue-700 transition"> DOWNLOAD </a>
 		</div>
 
 		<!-- Actions Approve Form -->
@@ -548,14 +558,14 @@ const stage4AdditionalLink = computed(() => {
 			<div class="flex gap-3 mb-6">
 				<Button :variant="lastStageAction === 'approve' ? 'default' : 'secondary'" @click="lastStageAction = 'approve'"> Terima </Button>
 
-				<Button :variant="lastStageAction === 'reject' ? 'destructive' : 'secondary'" @click="lastStageAction = 'reject'"> Tolak </Button>
+				<Button :variant="lastStageAction === 'reject' ? 'destructive' : 'secondary'" @click="lastStageAction = 'reject'"> Perbaiki </Button>
 			</div>
 
 			<!-- FORM AKSI -->
 			<div v-if="lastStageAction" class="space-y-6">
 				<!-- MUNCUL HANYA JIKA TERIMA -->
 				<div v-if="lastStageAction === 'approve'">
-					<Label class="text-sm text-gray-600">Lampiran RSKKNI</Label>
+					<Label class="text-sm text-gray-600">Lampiran SKKNI</Label>
 					<Input v-model="additionalLink" type="text" placeholder="https://drive.google.com/..." class="w-full rounded-md border p-2 bg-white" />
 				</div>
 
@@ -585,10 +595,13 @@ const stage4AdditionalLink = computed(() => {
 		</div>
 
 		<!-- Show link stage 4 finished -->
-		<div v-if="stage4AdditionalLink && detail?.status === 'COMPLETED' && detail?.currentStageNumber === 4" class="mt-6 p-4 border rounded bg-green-50">
-			<p class="text-sm text-gray-700">
-				Link SKKNI <a :href="stage4AdditionalLink" target="_blank" class="text-blue-600 underline">{{ stage4AdditionalLink }}</a>
-			</p>
+		<div v-if="stage4AdditionalLink && detail?.status === 'COMPLETED' && detail?.currentStageNumber === 4" class="mt-6 flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm">
+			<div class="flex flex-col">
+				<p class="font-medium text-gray-800 text-sm">Dokumen SKKNI Final</p>
+				<p class="text-xs text-gray-500">{{ stage4AdditionalLink }}</p>
+			</div>
+
+			<a :href="stage4AdditionalLink" target="_blank" class="px-4 py-2 bg-blue-600 text-white text-xs rounded-lg font-semibold shadow hover:bg-blue-700 transition"> DOWNLOAD </a>
 		</div>
 	</div>
 
@@ -611,7 +624,7 @@ const stage4AdditionalLink = computed(() => {
 						{{ getTranslateStatus(log.status) }}
 					</p>
 
-					<p class="text-xs text-gray-600 mt-1" v-html="log.note"></p>
+					<p class="text-xs text-gray-600 mt-1 whitespace-pre-wrap break-all wrap-anywhere" v-html="log.note"></p>
 				</div>
 			</div>
 		</DialogContent>
@@ -636,7 +649,7 @@ const stage4AdditionalLink = computed(() => {
 
 				<div class="p-3 border rounded bg-gray-50 mt-4">
 					<p class="text-xs text-gray-500">Catatan Admin:</p>
-					<p class="text-sm whitespace-pre-wrap" v-html="adminNote"></p>
+					<div class="text-sm whitespace-pre-wrap break-all wrap-anywhere" v-html="adminNote"></div>
 				</div>
 			</div>
 
@@ -662,9 +675,9 @@ const stage4AdditionalLink = computed(() => {
 
 			<!-- BODY -->
 			<div class="max-h-[60vh] overflow-y-auto mt-4 pr-1">
-				<div class="p-3 border rounded bg-gray-50">
+				<div class="p-3 border rounded bg-gray-50 mt-4">
 					<p class="text-xs text-gray-500">Catatan Admin:</p>
-					<p class="text-sm whitespace-pre-wrap" v-html="adminNote"></p>
+					<div class="text-sm whitespace-pre-wrap break-all wrap-anywhere" v-html="adminNote"></div>
 				</div>
 			</div>
 
@@ -690,9 +703,9 @@ const stage4AdditionalLink = computed(() => {
 
 			<!-- BODY -->
 			<div class="max-h-[60vh] overflow-y-auto mt-4 pr-1">
-				<div class="p-3 border rounded bg-gray-50">
+				<div class="p-3 border rounded bg-gray-50 mt-4">
 					<p class="text-xs text-gray-500">Catatan Admin:</p>
-					<p class="text-sm whitespace-pre-wrap" v-html="adminNote"></p>
+					<div class="text-sm whitespace-pre-wrap break-all wrap-anywhere" v-html="adminNote"></div>
 				</div>
 			</div>
 
@@ -720,7 +733,7 @@ const stage4AdditionalLink = computed(() => {
 			<div class="max-h-[60vh] overflow-y-auto mt-4 pr-1">
 				<!-- MUNCUL HANYA JIKA APPROVE -->
 				<div v-if="lastStageAction === 'approve'" class="p-3 border rounded bg-gray-50">
-					<p class="text-xs text-gray-500">Lampiran RSKKNI</p>
+					<p class="text-xs text-gray-500">Lampiran SKKNI</p>
 					<p class="text-sm font-medium break-all">
 						{{ additionalLink }}
 					</p>
@@ -729,7 +742,7 @@ const stage4AdditionalLink = computed(() => {
 				<!-- Catatan admin tampil untuk dua-duanya -->
 				<div class="p-3 border rounded bg-gray-50 mt-4">
 					<p class="text-xs text-gray-500">Catatan Admin:</p>
-					<p class="text-sm whitespace-pre-wrap" v-html="adminNote"></p>
+					<div class="text-sm whitespace-pre-wrap break-all wrap-anywhere" v-html="adminNote"></div>
 				</div>
 			</div>
 
