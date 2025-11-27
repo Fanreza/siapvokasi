@@ -4,16 +4,16 @@ export const updateProfileService = async (payload: Partial<AuthUser>) => {
 	const { $apiFetch } = useNuxtApp();
 
 	return await $apiFetch("/profile/update", {
-		method: "PUT",
+		method: "PATCH",
 		body: payload,
 	});
 };
 
-export const changePasswordService = async (payload: { oldPassword: string; newPassword: string }) => {
+export const changePasswordService = async (payload: { oldPassword: string; newPassword: string; confirmPassword: string }) => {
 	const { $apiFetch } = useNuxtApp();
 
 	return await $apiFetch("/profile/change-password", {
-		method: "PUT",
+		method: "PATCH",
 		body: payload,
 	});
 };

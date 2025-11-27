@@ -16,6 +16,7 @@ const isEditing = ref(false);
 // Toggle show/hide password
 const showOldPassword = ref(false);
 const showNewPassword = ref(false);
+const showConfirmPassword = ref(false);
 
 // FORM DATA
 const user = reactive({
@@ -31,26 +32,28 @@ const user = reactive({
 	password: "",
 });
 
-// Load data when mounted
+// Load user data
 onMounted(() => {
 	if (auth.user) {
-		user.name = auth.user.name;
-		user.email = auth.user.email;
-		user.instanceName = auth.user.instanceName ?? "";
-		user.instanceEmail = auth.user.instanceEmail ?? "";
-		user.instanceProvince = auth.user.instanceProvince ?? "";
-		user.instanceDistrict = auth.user.instanceDistrict ?? "";
-		user.instanceSubDistrict = auth.user.instanceSubDistrict ?? "";
-		user.instanceAddress = auth.user.instanceAddress ?? "";
-		user.instancePhone = auth.user.instancePhone ?? "";
-		user.password = "";
+		Object.assign(user, {
+			name: auth.user.name,
+			email: auth.user.email,
+			instanceName: auth.user.instanceName ?? "",
+			instanceEmail: auth.user.instanceEmail ?? "",
+			instanceProvince: auth.user.instanceProvince ?? "",
+			instanceDistrict: auth.user.instanceDistrict ?? "",
+			instanceSubDistrict: auth.user.instanceSubDistrict ?? "",
+			instanceAddress: auth.user.instanceAddress ?? "",
+			instancePhone: auth.user.instancePhone ?? "",
+			password: "",
+		});
 	}
 });
 
-// Edit toggle
+// toggle edit mode
 const toggleEdit = () => (isEditing.value = !isEditing.value);
 
-// Save profile
+// save profile
 const saveProfile = async () => {
 	try {
 		const payload = {
@@ -68,21 +71,25 @@ const saveProfile = async () => {
 
 		await updateProfileService(payload);
 		await auth.refreshUser();
-
 		isEditing.value = false;
 	} catch (err) {}
 };
 
-// Password change form
+// PASSWORD FORM
 const passwordForm = reactive({
 	oldPassword: "",
 	newPassword: "",
+	confirmPassword: "",
 });
 
-// Submit password change
+// change password
 const changePassword = async () => {
-	if (!passwordForm.oldPassword || !passwordForm.newPassword) {
-		return toast.error("Password lama dan baru wajib diisi");
+	if (!passwordForm.oldPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+		return toast.error("Semua password wajib diisi");
+	}
+
+	if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+		return toast.error("Password baru dan konfirmasi tidak sama");
 	}
 
 	if (passwordForm.oldPassword === passwordForm.newPassword) {
@@ -93,35 +100,32 @@ const changePassword = async () => {
 		await changePasswordService({
 			oldPassword: passwordForm.oldPassword,
 			newPassword: passwordForm.newPassword,
+			confirmPassword: passwordForm.confirmPassword,
 		});
 
 		passwordForm.oldPassword = "";
 		passwordForm.newPassword = "";
+		passwordForm.confirmPassword = "";
 	} catch (err) {}
 };
 
-// Avatar handling
+// AVATAR
 const avatarPreview = ref<string | null>(null);
 const avatarFile = ref<File | null>(null);
 
 const handleAvatarSelect = (e: Event) => {
 	const target = e.target as HTMLInputElement;
 	if (!target.files?.length) return;
-
 	const file = target.files[0];
-	avatarFile.value = file;
-	avatarPreview.value = URL.createObjectURL(file);
+	avatarFile.value = file!;
+	avatarPreview.value = URL.createObjectURL(file!);
 };
 
 const uploadAvatar = async () => {
-	if (!avatarFile.value) {
-		toast.warning("Silakan pilih file terlebih dahulu.");
-		return;
-	}
+	if (!avatarFile.value) return toast.warning("Pilih file terlebih dahulu");
 
 	try {
 		await uploadAvatarService(avatarFile.value);
-
 		avatarFile.value = null;
 		await auth.refreshUser();
 	} catch (err) {}
@@ -136,9 +140,9 @@ const uploadAvatar = async () => {
 				<!-- AVATAR -->
 				<div class="flex flex-col items-center mb-6">
 					<div class="relative">
-						<img :src="auth.user?.avatar" class="w-28 h-28 rounded-full object-cover border shadow" />
+						<img :src="auth.user?.avatar || '/images/default-avatar.png'" class="w-28 h-28 rounded-full object-cover border shadow" />
 
-						<label class="absolute bottom-1 right-1 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center cursor-pointer shadow-md hover:bg-blue-700 transition" title="Ubah Foto">
+						<label class="absolute bottom-1 right-1 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center cursor-pointer shadow-md hover:bg-blue-700 transition">
 							<Icon name="lucide:camera" class="w-5 h-5" />
 							<input type="file" class="hidden" accept="image/*" @change="handleAvatarSelect" />
 						</label>
@@ -160,9 +164,8 @@ const uploadAvatar = async () => {
 				</div>
 			</div>
 
-			<!-- EDIT BUTTON -->
 			<div class="flex items-center gap-3">
-				<Button v-if="!isEditing" size="sm" class="bg-blue-500 hover:bg-blue-600 text-white" @click="toggleEdit"> Edit Profil </Button>
+				<Button v-if="!isEditing" size="sm" class="bg-blue-500 text-white" @click="toggleEdit">Edit Profil</Button>
 
 				<template v-else>
 					<Button size="sm" variant="secondary" @click="toggleEdit">Batal</Button>
@@ -175,50 +178,23 @@ const uploadAvatar = async () => {
 
 		<!-- PROFILE FORM -->
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-			<div>
-				<label class="text-sm text-gray-600 mb-2 block">Nama Lengkap</label>
-				<Input v-model="user.name" :readonly="!isEditing" class="bg-gray-50" />
-			</div>
+			<div><label class="text-sm text-gray-600 mb-2 block">Nama Lengkap</label><Input v-model="user.name" :readonly="!isEditing" class="bg-gray-50" /></div>
+			<div><label class="text-sm text-gray-600 mb-2 block">Email</label><Input v-model="user.email" :readonly="!isEditing" class="bg-gray-50" /></div>
 
-			<div>
-				<label class="text-sm text-gray-600 mb-2 block">Email</label>
-				<Input v-model="user.email" :readonly="!isEditing" class="bg-gray-50" />
-			</div>
+			<div><label class="text-sm text-gray-600 mb-2 block">Nama Instansi</label><Input v-model="user.instanceName" :readonly="!isEditing" class="bg-gray-50" /></div>
+			<div><label class="text-sm text-gray-600 mb-2 block">Email Instansi</label><Input v-model="user.instanceEmail" :readonly="!isEditing" class="bg-gray-50" /></div>
 
-			<div>
-				<label class="text-sm text-gray-600 mb-2 block">Nama Instansi</label>
-				<Input v-model="user.instanceName" :readonly="!isEditing" class="bg-gray-50" />
-			</div>
+			<div><label class="text-sm text-gray-600 mb-2 block">Provinsi</label><Input v-model="user.instanceProvince" :readonly="!isEditing" class="bg-gray-50" /></div>
+			<div><label class="text-sm text-gray-600 mb-2 block">Kota</label><Input v-model="user.instanceDistrict" :readonly="!isEditing" class="bg-gray-50" /></div>
 
-			<div>
-				<label class="text-sm text-gray-600 mb-2 block">Email Instansi</label>
-				<Input v-model="user.instanceEmail" :readonly="!isEditing" class="bg-gray-50" />
-			</div>
-
-			<div>
-				<label class="text-sm text-gray-600 mb-2 block">Provinsi</label>
-				<Input v-model="user.instanceProvince" :readonly="!isEditing" class="bg-gray-50" />
-			</div>
-
-			<div>
-				<label class="text-sm text-gray-600 mb-2 block">Kota</label>
-				<Input v-model="user.instanceDistrict" :readonly="!isEditing" class="bg-gray-50" />
-			</div>
-
-			<div>
-				<label class="text-sm text-gray-600 mb-2 block">Kecamatan</label>
-				<Input v-model="user.instanceSubDistrict" :readonly="!isEditing" class="bg-gray-50" />
-			</div>
+			<div><label class="text-sm text-gray-600 mb-2 block">Kecamatan</label><Input v-model="user.instanceSubDistrict" :readonly="!isEditing" class="bg-gray-50" /></div>
 
 			<div class="md:col-span-2">
 				<label class="text-sm text-gray-600 mb-2 block">Alamat Lengkap</label>
 				<Textarea v-model="user.instanceAddress" rows="3" :readonly="!isEditing" class="bg-gray-50" />
 			</div>
 
-			<div>
-				<label class="text-sm text-gray-600 mb-2 block">No Telp</label>
-				<Input v-model="user.instancePhone" :readonly="!isEditing" class="bg-gray-50" />
-			</div>
+			<div><label class="text-sm text-gray-600 mb-2 block">No Telp</label><Input v-model="user.instancePhone" :readonly="!isEditing" class="bg-gray-50" /></div>
 		</div>
 
 		<hr class="border-gray-200 my-6" />
@@ -231,11 +207,9 @@ const uploadAvatar = async () => {
 				<!-- PASSWORD LAMA -->
 				<div>
 					<label class="text-sm text-gray-600 mb-2 block">Password Lama</label>
-
 					<div class="relative">
 						<Input :type="showOldPassword ? 'text' : 'password'" v-model="passwordForm.oldPassword" class="bg-white pr-10" />
-
-						<button type="button" class="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600" @click="showOldPassword = !showOldPassword">
+						<button type="button" class="absolute inset-y-0 right-3 text-gray-400 hover:text-gray-600" @click="showOldPassword = !showOldPassword">
 							<Eye v-if="!showOldPassword" class="w-4 h-4" />
 							<EyeOff v-else class="w-4 h-4" />
 						</button>
@@ -245,12 +219,22 @@ const uploadAvatar = async () => {
 				<!-- PASSWORD BARU -->
 				<div>
 					<label class="text-sm text-gray-600 mb-2 block">Password Baru</label>
-
 					<div class="relative">
 						<Input :type="showNewPassword ? 'text' : 'password'" v-model="passwordForm.newPassword" class="bg-white pr-10" />
-
-						<button type="button" class="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600" @click="showNewPassword = !showNewPassword">
+						<button type="button" class="absolute inset-y-0 right-3 text-gray-400 hover:text-gray-600" @click="showNewPassword = !showNewPassword">
 							<Eye v-if="!showNewPassword" class="w-4 h-4" />
+							<EyeOff v-else class="w-4 h-4" />
+						</button>
+					</div>
+				</div>
+
+				<!-- CONFIRM PASSWORD -->
+				<div>
+					<label class="text-sm text-gray-600 mb-2 block">Konfirmasi Password Baru</label>
+					<div class="relative">
+						<Input :type="showConfirmPassword ? 'text' : 'password'" v-model="passwordForm.confirmPassword" class="bg-white pr-10" />
+						<button type="button" class="absolute inset-y-0 right-3 text-gray-400 hover:text-gray-600" @click="showConfirmPassword = !showConfirmPassword">
+							<Eye v-if="!showConfirmPassword" class="w-4 h-4" />
 							<EyeOff v-else class="w-4 h-4" />
 						</button>
 					</div>
