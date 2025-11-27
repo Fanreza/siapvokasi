@@ -393,7 +393,7 @@ const stage2AdditionalLink = computed(() => {
 		<!-- Show Acceptance Link -->
 		<div v-if="detail?.confirmationLetterDocument" class="mt-6 flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm">
 			<div class="flex flex-col">
-				<p class="font-medium text-gray-800 text-sm">Dokumen Surat Penerimaan</p>
+				<p class="font-medium text-gray-800 text-sm"><p class="font-medium text-gray-800 text-sm">Dokumen Surat {{ detail?.status === "REJECTED" ? "Penolakan" : "Penerimaan" }}</p></p>
 				<p class="text-xs text-gray-500">{{ detail?.confirmationLetterDocument }}</p>
 			</div>
 
