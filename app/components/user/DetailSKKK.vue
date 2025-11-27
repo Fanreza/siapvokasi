@@ -158,11 +158,11 @@ const onSubmitApplicationFix = async () => {
 const stage2AdditionalLink = computed(() => {
 	if (!logs.value.length) return null;
 
-	const stage2Logs = logs.value.filter((l: any) => l.stageNumber === 2 && l.additionalLink);
+	const completedLogs = logs.value.filter((l: any) => l.stageNumber === 2 && l.status === "COMPLETED" && l.additionalLink);
 
-	if (!stage2Logs.length) return null;
+	if (!completedLogs.length) return null;
 
-	return stage2Logs.at(-1).additionalLink;
+	return completedLogs.at(-1).additionalLink;
 });
 </script>
 

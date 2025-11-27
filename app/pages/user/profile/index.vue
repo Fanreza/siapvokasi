@@ -126,14 +126,14 @@ const uploadAvatar = async () => {
 </script>
 
 <template>
-	<div class="bg-white rounded-xl shadow-sm p-6 md:p-8">
+	<div class="bg-white rounded-xl shadow-sm p-6 md:p-8" v-if="auth.user">
 		<!-- HEADER -->
 		<div class="flex items-start justify-between mb-6">
 			<div>
 				<!-- AVATAR -->
 				<div class="flex flex-col items-center mb-6">
 					<div class="relative">
-						<img :src="avatarPreview || auth.user?.avatar || '/images/default-avatar.png'" class="w-28 h-28 rounded-full object-cover border shadow" />
+						<img :src="auth.user?.avatar" class="w-28 h-28 rounded-full object-cover border shadow" />
 
 						<label class="absolute bottom-1 right-1 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center cursor-pointer shadow-md hover:bg-blue-700 transition" title="Ubah Foto">
 							<Icon name="lucide:camera" class="w-5 h-5" />
