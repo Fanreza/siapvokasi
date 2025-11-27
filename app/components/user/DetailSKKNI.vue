@@ -291,7 +291,7 @@ const stage4AdditionalLink = computed(() => {
 											<p>{{ getTranslateStatus((row["stage" + n] as any)?.logs?.at(-1)?.status) }}</p>
 										</span>
 
-										<Button size="sm" variant="default" class="mt-2 text-xs w-full" @click="openLog('Tahap ' + n, (row['stage' + n] as any)?.logs)"> Lihat Log </Button>
+										<Button size="sm" variant="default" class="mt-2 text-xs w-full" @click="openLog('Tahap ' + n, (row['stage' + n] as any)?.logs)"> Lihat </Button>
 									</template>
 								</TableCell>
 							</TableRow>

@@ -38,6 +38,8 @@
 				<!-- Result container -->
 				<div v-if="!loading && trackingData" id="tracking-section" class="space-y-6">
 					<UserTrackingSKKNI v-if="trackingData?.service?.name === 'SKKNI'" :detail="trackingData" :logs="trackingData.logs || []" />
+					<UserTrackingSKKK v-else-if="trackingData?.service?.name === 'SKKK/SKKI'" :detail="trackingData" :logs="trackingData.logs || []" />
+					<UserTrackingCLSP v-else-if="trackingData?.service?.name === 'CLSP'" :detail="trackingData" :logs="trackingData.logs || []" />
 
 					<div v-else class="text-center text-gray-500 py-10">
 						Tracking untuk layanan

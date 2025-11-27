@@ -46,7 +46,7 @@ const leftInfo = computed(() => {
 		{ label: "Jenis Layanan", value: d.service?.name },
 		{ label: "Nama Pengajuan", value: d.applicationName },
 		{ label: "Nama Pengusul", value: d.applicantName },
-		{ label: "Nama Instansi", value: d.applicantName || "-" },
+		{ label: "Nama Instansi", value: d.instanceName || "-" },
 		{ label: "Alamat", value: d.applicantAddress },
 		{
 			label: "Tanggal Surat",
@@ -87,7 +87,7 @@ const timeline = computed<TimelineRow[]>(() => {
 });
 
 const stage4AdditionalLink = computed(() => {
-	return props.logs?.filter((l: any) => l.stageNumber === 4 && l.additionalLink)?.at(-1)?.additionalLink;
+	return props.logs?.filter((l: any) => l.stageNumber === 4 && l.status === "COMPLETED" && l.additionalLink)?.at(-1)?.additionalLink || null;
 });
 </script>
 
@@ -120,8 +120,8 @@ const stage4AdditionalLink = computed(() => {
 				<div class="p-6 bg-gray-50 rounded-xl">
 					<div class="text-center mb-6">
 						<h3 class="font-semibold text-gray-700">Status</h3>
-						<div class="px-4 py-2 mt-2 rounded text-sm font-bold" :class="getClassStatus(detail?.status)">
-							{{ getTranslateStatus(detail?.status) }}
+						<div class="px-4 py-2 mt-2 rounded text-sm font-bold" :class="getClassStatus(detail?.lastLogStatus)">
+							{{ getTranslateStatus(detail?.lastLogStatus) }}
 						</div>
 					</div>
 
@@ -212,7 +212,7 @@ const stage4AdditionalLink = computed(() => {
 											</p>
 										</span>
 
-										<Button size="sm" variant="default" class="mt-2 text-xs w-full" @click="openLog('Tahap ' + n, row['stage' + n].logs)"> Lihat Log </Button>
+										<Button size="sm" variant="default" class="mt-2 text-xs w-full" @click="openLog('Tahap ' + n, row['stage' + n].logs)"> Lihat </Button>
 									</template>
 								</TableCell>
 							</TableRow>
@@ -232,13 +232,13 @@ const stage4AdditionalLink = computed(() => {
 			</div>
 
 			<!-- LINK SKKNI FINAL -->
-			<div v-if="stage4AdditionalLink && detail?.status === 'COMPLETED' && detail?.currentStageNumber === 4" class="mt-6 p-4 border rounded bg-green-50">
-				<p class="text-sm text-gray-700">
-					Link SKKNI:
-					<a :href="stage4AdditionalLink" target="_blank" class="text-blue-600 underline">
-						{{ stage4AdditionalLink }}
-					</a>
-				</p>
+			<div v-if="stage4AdditionalLink && detail?.status === 'COMPLETED' && detail?.currentStageNumber === 4" class="mt-6 flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm">
+				<div class="flex flex-col">
+					<p class="font-medium text-gray-800 text-sm">Dokumen SKKNI Final</p>
+					<p class="text-xs text-gray-500">{{ stage4AdditionalLink }}</p>
+				</div>
+
+				<a :href="stage4AdditionalLink" target="_blank" class="px-4 py-2 bg-blue-600 text-white text-xs rounded-lg font-semibold shadow hover:bg-blue-700 transition"> DOWNLOAD </a>
 			</div>
 		</template>
 	</div>
