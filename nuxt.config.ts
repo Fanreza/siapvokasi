@@ -62,9 +62,9 @@ export default defineNuxtConfig({
 				"worker-src": ["'self'", "blob:"],
 				"child-src": ["'self'", "blob:"],
 
-				"connect-src": ["'self'", "https://stankom.fanreza.my.id", "https://vokasi.fanreza.my.id", "https://apistankom.kemnaker.go.id", "https://apisiapvokasi.kemnaker.go.id", "https://www.instagram.com", "https://i.instagram.com", "https://graph.instagram.com", "https://platform.twitter.com", "https://maps.googleapis.com"],
+				"connect-src": ["'self'", "https://stankom.fanreza.my.id", "https://vokasi.fanreza.my.id", "https://apistankom.kemnaker.go.id", "https://apisiapvokasi.kemnaker.go.id", "https://www.instagram.com", "https://i.instagram.com", "https://graph.instagram.com", "https://platform.twitter.com", "https://maps.googleapis.com", "http://192.168.223.21:4002", "http://192.168.223.21:4003"],
 
-				"img-src": ["'self'", "data:", "blob:", "https://apistankom.kemnaker.go.id", "https://vokasi.fanreza.my.id", "https://apisiapvokasi.kemnaker.go.id", "https://storage.googleapis.com", "https://scontent.cdninstagram.com", "https://*.cdninstagram.com", "https://*.fbcdn.net", "https://maps.gstatic.com", "https://lh3.googleusercontent.com", "https://vokasi.fanreza.my.id", "https://api.iconify.design"],
+				"img-src": ["'self'", "data:", "blob:", "https://apistankom.kemnaker.go.id", "https://vokasi.fanreza.my.id", "https://apisiapvokasi.kemnaker.go.id", "https://storage.googleapis.com", "https://scontent.cdninstagram.com", "https://*.cdninstagram.com", "https://*.fbcdn.net", "https://maps.gstatic.com", "https://lh3.googleusercontent.com", "https://vokasi.fanreza.my.id", "https://api.iconify.design", "http://192.168.223.21:4002", "http://192.168.223.21:4003"],
 
 				"script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://www.instagram.com", "https://static.cdninstagram.com", "https://platform.instagram.com", "https://platform.twitter.com", "https://www.google.com", "https://maps.googleapis.com", "https://maps.gstatic.com"],
 
