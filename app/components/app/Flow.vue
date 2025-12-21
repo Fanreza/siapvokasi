@@ -37,12 +37,16 @@
 
 								<!-- Description -->
 								<StepperDescription class="text-sm text-gray-600 mt-4 leading-relaxed min-h-[80px]">
-									<ul v-if="item.description.length > 1" class="space-y-1">
-										<li v-for="(desc, idx) in item.description" :key="idx" class="flex items-start justify-center">{{ desc }}</li>
-									</ul>
-									<p v-else>
-										{{ item.description[0] }}
-									</p>
+									<div>
+										<template v-if="Array.isArray(item.description) && item.description.length > 1">
+											<ul class="space-y-1">
+												<li v-for="(desc, idx) in item.description" :key="idx" class="flex items-start justify-center">{{ desc }}</li>
+											</ul>
+										</template>
+										<template v-else>
+											<p>{{ Array.isArray(item.description) ? item.description[0] : item.description }}</p>
+										</template>
+									</div>
 								</StepperDescription>
 							</div>
 						</StepperTrigger>

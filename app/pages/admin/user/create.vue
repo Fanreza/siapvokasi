@@ -2,7 +2,7 @@
 import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { toast } from "vue-sonner";
-
+import { Eye, EyeOff } from "lucide-vue-next";
 import { createUserService } from "~/services/user.services";
 
 definePageMeta({
@@ -14,28 +14,42 @@ const router = useRouter();
 const loading = ref(false);
 const isConfirmOpen = ref(false);
 
+const showPassword = ref(false);
+const showPasswordConfirmation = ref(false);
+
 const form = reactive({
 	name: "",
 	email: "",
 	password: "",
+	passwordConfirmation: "",
 	roleId: 3,
+
+	instanceName: "",
+	instanceEmail: "",
+	instanceProvince: "",
+	instanceDistrict: "",
+	instanceSubDistrict: "",
+	instanceAddress: "",
+	instancePhone: "",
 });
 
-// open modal confirm
 const openConfirm = () => {
-	if (!form.name || !form.email || !form.password) {
-		return toast.error("Harap lengkapi semua field");
+	if (!form.name || !form.email || !form.password || !form.passwordConfirmation) {
+		return toast.error("Harap lengkapi semua field wajib");
 	}
+
+	if (form.password !== form.passwordConfirmation) {
+		return toast.error("Password dan konfirmasi tidak sama");
+	}
+
 	isConfirmOpen.value = true;
 };
 
 const handleSubmit = async () => {
 	loading.value = true;
-
 	try {
 		await createUserService(form);
-
-		router.push("/admin/users");
+		router.push("/admin/user");
 	} finally {
 		loading.value = false;
 	}
@@ -43,72 +57,121 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-	<div class="space-y-6 bg-white p-10 rounded-lg h-full">
-		<!-- FORM GRID -->
-		<div class="grid grid-cols-2 gap-6 mt-10">
-			<div>
-				<Label class="text-sm text-gray-600">Nama Lengkap</Label>
+	<div class="space-y-8 bg-white p-10 rounded-lg h-full">
+		<h2 class="text-xl font-semibold">Tambah User</h2>
+
+		<!-- EMAIL -->
+		<div class="grid gap-2">
+			<Label>Email</Label>
+			<Input v-model="form.email" type="email" placeholder="Masukkan Email" class="bg-gray-50" />
+		</div>
+
+		<hr />
+
+		<!-- GRID DATA -->
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+			<div class="grid gap-2">
+				<Label>Nama Lengkap</Label>
 				<Input v-model="form.name" placeholder="Nama Lengkap" class="bg-gray-50" />
 			</div>
 
-			<div>
-				<Label class="text-sm text-gray-600">Email</Label>
-				<Input v-model="form.email" type="email" placeholder="Email" class="bg-gray-50" />
-			</div>
-
-			<div>
-				<Label class="text-sm text-gray-600">Password</Label>
-				<Input v-model="form.password" type="password" placeholder="Password" class="bg-gray-50" />
-			</div>
-
-			<div>
-				<Label class="text-sm text-gray-600">Role</Label>
-
+			<div class="grid gap-2">
+				<Label>Role</Label>
 				<Select v-model="form.roleId">
 					<SelectTrigger class="bg-gray-50 w-full">
 						<SelectValue placeholder="Pilih Role" />
 					</SelectTrigger>
-
 					<SelectContent>
-						<SelectGroup>
-							<SelectItem :value="1">SUPERADMIN</SelectItem>
-							<SelectItem :value="2">ADMIN</SelectItem>
-							<SelectItem :value="3">USER</SelectItem>
-							<SelectItem :value="4">ADMIN SKKNI</SelectItem>
-							<SelectItem :value="5">ADMIN SKKNK</SelectItem>
-							<SelectItem :value="6">ADMIN CLSP</SelectItem>
-						</SelectGroup>
+						<SelectItem :value="1">SUPERADMIN</SelectItem>
+						<SelectItem :value="2">ADMIN</SelectItem>
+						<SelectItem :value="3">USER</SelectItem>
+						<SelectItem :value="4">ADMIN SKKNI</SelectItem>
+						<SelectItem :value="5">ADMIN SKKNK</SelectItem>
+						<SelectItem :value="6">ADMIN CLSP</SelectItem>
 					</SelectContent>
 				</Select>
 			</div>
+
+			<div class="grid gap-2">
+				<Label>Nama Instansi</Label>
+				<Input v-model="form.instanceName" placeholder="Kemnaker" class="bg-gray-50" />
+			</div>
+
+			<div class="grid gap-2">
+				<Label>Email Instansi</Label>
+				<Input v-model="form.instanceEmail" type="email" placeholder="email@instansi.go.id" class="bg-gray-50" />
+			</div>
+
+			<div class="grid gap-2">
+				<Label>Provinsi</Label>
+				<Input v-model="form.instanceProvince" class="bg-gray-50" />
+			</div>
+
+			<div class="grid gap-2">
+				<Label>Kota</Label>
+				<Input v-model="form.instanceDistrict" class="bg-gray-50" />
+			</div>
+
+			<div class="grid gap-2">
+				<Label>Kecamatan</Label>
+				<Input v-model="form.instanceSubDistrict" class="bg-gray-50" />
+			</div>
+
+			<div class="grid gap-2">
+				<Label>No Telepon</Label>
+				<Input v-model="form.instancePhone" class="bg-gray-50" />
+			</div>
+
+			<div class="grid gap-2 md:col-span-2">
+				<Label>Alamat Lengkap</Label>
+				<Textarea v-model="form.instanceAddress" class="bg-gray-50" />
+			</div>
 		</div>
 
-		<!-- FOOTER BUTTONS -->
-		<div class="flex justify-between pt-8">
+		<hr />
+
+		<!-- PASSWORD -->
+		<div class="grid gap-2">
+			<Label>Password</Label>
+			<div class="relative">
+				<Input :type="showPassword ? 'text' : 'password'" v-model="form.password" class="bg-gray-50 pr-10" />
+				<button type="button" class="absolute inset-y-0 right-3 flex items-center" @click="showPassword = !showPassword">
+					<Eye v-if="!showPassword" class="w-4 h-4" />
+					<EyeOff v-else class="w-4 h-4" />
+				</button>
+			</div>
+		</div>
+
+		<!-- PASSWORD CONFIRM -->
+		<div class="grid gap-2">
+			<Label>Konfirmasi Password</Label>
+			<div class="relative">
+				<Input :type="showPasswordConfirmation ? 'text' : 'password'" v-model="form.passwordConfirmation" class="bg-gray-50 pr-10" />
+				<button type="button" class="absolute inset-y-0 right-3 flex items-center" @click="showPasswordConfirmation = !showPasswordConfirmation">
+					<Eye v-if="!showPasswordConfirmation" class="w-4 h-4" />
+					<EyeOff v-else class="w-4 h-4" />
+				</button>
+			</div>
+		</div>
+
+		<!-- ACTION -->
+		<div class="flex justify-between pt-6">
 			<NuxtLink to="/admin/user">
-				<Button variant="secondary" class="px-6">Batal</Button>
+				<Button variant="secondary">Batal</Button>
 			</NuxtLink>
-
-			<Button @click="openConfirm" class="px-6 bg-blue-600 text-white"> Simpan </Button>
+			<Button @click="openConfirm" class="bg-blue-600 text-white">Simpan</Button>
 		</div>
 
-		<!-- CONFIRM DIALOG -->
+		<!-- CONFIRM MODAL (TIDAK DIHAPUS) -->
 		<Dialog v-model:open="isConfirmOpen">
 			<DialogContent class="sm:max-w-md">
 				<DialogHeader>
 					<DialogTitle>Konfirmasi</DialogTitle>
-					<DialogDescription> Apakah Anda yakin ingin membuat user baru dengan data ini? </DialogDescription>
+					<DialogDescription>Yakin membuat user dengan data ini?</DialogDescription>
 				</DialogHeader>
-
-				<div class="mt-4 text-sm space-y-1 text-gray-700 border rounded p-4 bg-gray-50">
-					<p><b>Nama:</b> {{ form.name }}</p>
-					<p><b>Email:</b> {{ form.email }}</p>
-					<p><b>Role:</b> {{ form.roleId }}</p>
-				</div>
 
 				<DialogFooter class="mt-4 flex justify-end gap-3">
 					<Button variant="secondary" @click="isConfirmOpen = false">Batal</Button>
-
 					<Button @click="handleSubmit" :disabled="loading" class="bg-blue-600 text-white">
 						{{ loading ? "Memproses..." : "Ya, Simpan" }}
 					</Button>

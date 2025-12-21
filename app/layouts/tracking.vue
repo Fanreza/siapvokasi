@@ -1,4 +1,5 @@
 <template>
+	<AppNavbar />
 	<AppHero layout="tracking" />
 
 	<slot />

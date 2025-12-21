@@ -4,7 +4,9 @@
 			<div class="flex justify-between items-center">
 				<!-- Logo -->
 				<div class="flex items-center space-x-3">
-					<img src="/images/logo.png" alt="" class="w-40" />
+					<NuxtLink to="/">
+						<img src="/images/logo.png" alt="" class="w-40" />
+					</NuxtLink>
 				</div>
 
 				<!-- Desktop Menu -->

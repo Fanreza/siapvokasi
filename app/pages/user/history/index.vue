@@ -124,7 +124,7 @@ const drawerRef = ref();
 		</Table>
 
 		<!-- PAGINATION -->
-		<UserPagination :page="page" :total="totalItems" :perPage="perPage" @updatePage="page = $event" />
+		<UserPagination :page="page" :total="totalItems" :perPage="perPage" @update:page="page = $event" />
 
 		<CommonDrawerTracking ref="drawerRef" @update:data="fetchData" />
 	</div>

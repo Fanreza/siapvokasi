@@ -100,6 +100,6 @@ const handleDelete = async (id: number) => {
 		<div v-else class="py-10 text-center text-gray-400">Loading...</div>
 
 		<!-- PAGINATION -->
-		<UserPagination :page="page" :total="meta?.totalItems || 0" :perPage="perPage" @updatePage="handlePageChange" />
+		<UserPagination :page="page" :total="meta?.totalItems || 0" :perPage="perPage" @update:page="handlePageChange" />
 	</div>
 </template>

@@ -56,7 +56,7 @@ const handleSubmit = async () => {
 			status: form.status === "true",
 		});
 
-		router.push("/admin/users");
+		router.push("/admin/user");
 	} finally {
 		saving.value = false;
 	}

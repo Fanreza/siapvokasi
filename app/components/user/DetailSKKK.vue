@@ -181,7 +181,6 @@ const stage2AdditionalLink = computed(() => {
 		</div>
 
 		<template v-else>
-			Ada
 			<h2 class="font-semibold text-xl">{{ detail?.code }}</h2>
 
 			<div class="grid md:grid-cols-2 gap-6">

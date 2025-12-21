@@ -69,7 +69,7 @@ export const useFaqService = () => {
 		error.value = null;
 		try {
 			const res = await $apiFetch<FAQ>(`/faq/${id}`, {
-				method: "PUT",
+				method: "PATCH",
 				body: payload,
 			});
 

@@ -15,6 +15,8 @@ const itemsPerPage = computed(() => props.perPage ?? 10);
 const currentPage = computed(() => props.page ?? 1);
 const startItem = computed(() => (currentPage.value - 1) * itemsPerPage.value + 1);
 const endItem = computed(() => Math.min(currentPage.value * itemsPerPage.value, props.total));
+
+console.log("startItem", startItem.value);
 </script>
 
 <template>
