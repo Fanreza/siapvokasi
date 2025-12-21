@@ -50,7 +50,7 @@ const fetchFaqs = async () => {
 		const raw = response.value as any;
 		const items = raw?.items || raw?.data || [];
 		// sort by order ascending
-		faqs.value = items.sort((a: any, b: any) => (Number(a.order ?? 0) - Number(b.order ?? 0)));
+		faqs.value = items.sort((a: any, b: any) => Number(a.order ?? 0) - Number(b.order ?? 0));
 	} catch (err) {
 		faqs.value = [];
 		console.error(err);

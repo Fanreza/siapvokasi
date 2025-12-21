@@ -117,6 +117,15 @@ const navItems = [
 							</NuxtLink>
 						</SidebarMenuButton>
 					</SidebarMenuItem>
+
+					<SidebarMenuItem v-if="auth.isSuperadmin">
+						<SidebarMenuButton as-child>
+							<NuxtLink to="/admin/services" class="flex items-center gap-2 rounded-md py-6 text-sm font-medium transition" :class="isActive('/admin/requirements') ? 'bg-blue-50 text-primary font-semibold' : 'text-[#888C9F]'">
+								<HelpCircle class="h-4 w-4" />
+								<span>Persyaratan</span>
+							</NuxtLink>
+						</SidebarMenuButton>
+					</SidebarMenuItem>
 				</SidebarMenu>
 			</SidebarGroup>
 		</SidebarContent>
