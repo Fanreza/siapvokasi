@@ -1,6 +1,6 @@
 // Service resource service (renamed from requirements.services.ts)
 import type { ApiResponse } from "~/models/response-wrapper.model";
-import type { Persyaratan, CreatePersyaratanDto, UpdatePersyaratanDto } from "~/models/services.model";
+import type { Persyaratan, CreatePersyaratanDto, UpdatePersyaratanDto, ServiceItem } from "~/models/services.model";
 
 export const usePersyaratanService = () => {
 	const { $apiFetch } = useNuxtApp();
@@ -11,6 +11,12 @@ export const usePersyaratanService = () => {
 	const error = ref<Error | null>(null);
 
 	const endpoint = (isPublic = false) => (isPublic ? "/public/services" : "/services");
+
+	const getServices = async () => {
+		const { $apiFetch } = useNuxtApp();
+
+		return await $apiFetch<ApiResponse<ServiceItem[]>>("/services");
+	};
 
 	const getAll = async (params?: { page?: number; perPage?: number }, isPublic = false) => {
 		loading.value = true;
@@ -107,5 +113,5 @@ export const usePersyaratanService = () => {
 		}
 	};
 
-	return { response, responseGet, loading, error, getAll, get, create, update, remove };
+	return { response, responseGet, loading, error, getAll, get, create, update, remove, getServices };
 };

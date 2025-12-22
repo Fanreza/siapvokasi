@@ -5,7 +5,9 @@ definePageMeta({
 });
 
 import { ref, onMounted } from "vue";
-import { getServices } from "~/services/service.services";
+import { usePersyaratanService } from "~/services/service.services";
+
+const { getServices } = usePersyaratanService();
 
 const currentTab = ref("pilih-layanan");
 const selectedService = ref();
