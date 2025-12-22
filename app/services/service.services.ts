@@ -33,11 +33,11 @@ export const usePersyaratanService = () => {
 		}
 	};
 
-	const get = async (id: number) => {
+	const get = async (id: number, isPublic = false) => {
 		loading.value = true;
 		error.value = null;
 		try {
-			const res = await $apiFetch<Persyaratan>(`/services/${id}`);
+			const res = await $apiFetch<Persyaratan>(`${endpoint(isPublic)}/${id}`);
 			responseGet.value = res;
 			return res;
 		} catch (err: any) {

@@ -79,7 +79,7 @@ onMounted(async () => {
 	servicesLoading.value = true;
 	try {
 		const svc = usePersyaratanService();
-		await svc.getAll();
+		await svc.getAll({}, true);
 		const raw = svc.response.value as any;
 		let items: any[] = [];
 		if (Array.isArray(raw)) items = raw;
@@ -103,10 +103,12 @@ const loadForService = async (serviceId: number) => {
 		const svc = usePersyaratanService();
 
 		// fetch service detail which already includes `requirements`
-		const detail = await svc.get(serviceId);
+		const detail = await svc.get(serviceId, true);
 
-		const reqs = (detail as any).requirements ?? [];
+		const reqs = (detail as any).item.requirements ?? [];
+
 		const items = Array.isArray(reqs) ? reqs : [];
+
 		// sort by order then map descriptions
 		items.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 		requirements.value = items.map((it) => ({ id: it.id, order: it.order, description: it.description }));
