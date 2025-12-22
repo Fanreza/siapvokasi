@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from "vue";
-import { usePersyaratanService } from "~/services/service.services";
+import { useRoute } from "vue-router";
+import { useRequirementService } from "~/services/requirement.services";
 import { toast } from "vue-sonner";
 
 definePageMeta({ layout: "admin", middleware: "superadmin" });
+
+const route = useRoute();
+const serviceId = Number(route.params.id);
 
 const page = ref(1);
 const perPage = 10;
@@ -12,7 +16,7 @@ const search = ref("");
 const items = ref<any[]>([]);
 const totalItems = ref(0);
 
-const { getAll, remove, response, loading } = usePersyaratanService();
+const { getAll, remove, response, loading } = useRequirementService(serviceId);
 
 const params = computed(() => ({ page: page.value, perPage, search: search.value || undefined }));
 
@@ -20,8 +24,13 @@ const fetchData = async () => {
 	try {
 		await getAll(params.value);
 		const raw = response.value as any;
-		items.value = raw?.items || raw?.data || [];
-		totalItems.value = raw?.meta?.totalItems ?? 0;
+		if (Array.isArray(raw)) {
+			items.value = raw;
+			totalItems.value = raw.length;
+		} else {
+			items.value = raw?.items || raw?.data || [];
+			totalItems.value = raw?.meta?.totalItems ?? (Array.isArray(items.value) ? items.value.length : 0);
+		}
 	} catch (err) {
 		toast.error("Gagal memuat persyaratan");
 	}
@@ -62,7 +71,7 @@ const confirmDelete = async () => {
 
 			<div class="flex items-center gap-2">
 				<CommonDebouncedSearch v-model="search" :debounce="300" placeholder="Cari persyaratan..." />
-				<NuxtLink to="/admin/services/create">
+				<NuxtLink :to="`/admin/services/${serviceId}/requirements/create`">
 					<Button>Tambah Persyaratan</Button>
 				</NuxtLink>
 			</div>
@@ -72,20 +81,19 @@ const confirmDelete = async () => {
 			<TableHeader class="bg-[#F3F6F9]">
 				<TableRow>
 					<TableHead>ID</TableHead>
-					<TableHead>Nama</TableHead>
-					<TableHead>Waktu</TableHead>
-					<TableHead>Dokumen</TableHead>
+					<TableHead>Urutan</TableHead>
+					<TableHead>Deskripsi</TableHead>
 					<TableHead>Aksi</TableHead>
 				</TableRow>
 			</TableHeader>
 
 			<TableBody>
 				<TableRow v-if="loading">
-					<TableCell colspan="5" class="text-center py-10 text-gray-400"> Mengambil data... </TableCell>
+					<TableCell colspan="4" class="text-center py-10 text-gray-400"> Mengambil data... </TableCell>
 				</TableRow>
 
 				<TableRow v-if="!loading && items.length === 0">
-					<TableCell colspan="5" class="text-center py-10 text-gray-400">
+					<TableCell colspan="4" class="text-center py-10 text-gray-400">
 						<div class="flex flex-col items-center justify-center gap-2">
 							<div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
 								<Icon name="lucide:inbox" class="w-6 h-6 text-gray-400" />
@@ -97,19 +105,10 @@ const confirmDelete = async () => {
 
 				<TableRow v-for="it in items" :key="it.id">
 					<TableCell>{{ it.id }}</TableCell>
-					<TableCell>{{ it.name }}</TableCell>
-					<TableCell>{{ it.workingTime }}</TableCell>
-					<TableCell>
-						<div v-if="it.documentPath">
-							<a :href="it.documentPath" target="_blank" class="text-blue-600">Lihat</a>
-						</div>
-						<div v-else>-</div>
-					</TableCell>
+					<TableCell>{{ it.order }}</TableCell>
+					<TableCell>{{ it.description }}</TableCell>
 					<TableCell class="flex gap-2">
-						<NuxtLink :to="`/admin/services/${it.id}/requirements`">
-							<Button size="sm">Detail</Button>
-						</NuxtLink>
-						<NuxtLink :to="`/admin/services/${it.id}/edit`">
+						<NuxtLink :to="`/admin/services/${serviceId}/requirements/${it.id}/edit`">
 							<Button size="sm">Edit</Button>
 						</NuxtLink>
 						<Button variant="destructive" size="sm" @click="openDeleteModal(it)"> Hapus </Button>

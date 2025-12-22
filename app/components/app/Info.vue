@@ -16,10 +16,7 @@
 
 							<SelectContent>
 								<SelectGroup>
-									<SelectItem value="skkni"> Penetapan SKKNI </SelectItem>
-
-									<SelectItem value="skk">Penetapan SKK</SelectItem>
-									<SelectItem value="clsp">Pengajuan CLSP</SelectItem>
+									<SelectItem v-for="s in services" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
 								</SelectGroup>
 							</SelectContent>
 						</Select>
@@ -30,7 +27,7 @@
 				<div v-if="selectedService" class="space-y-6">
 					<!-- Action Buttons -->
 					<div class="flex flex-col sm:flex-row gap-3">
-						<a :href="downloadUrl" download class="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-lg">
+						<a :href="downloadUrl!" download class="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-lg">
 							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
 							</svg>
@@ -52,7 +49,7 @@
 								{{ index + 1 }}
 							</div>
 							<p class="text-gray-700 text-sm leading-relaxed flex-1 pt-2">
-								{{ requirement }}
+								{{ requirement.description }}
 							</p>
 						</div>
 					</div>
@@ -68,63 +65,71 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
+import { toast } from "vue-sonner";
+import { usePersyaratanService } from "~/services/service.services";
 
-const selectedService = ref("");
+// selectedService holds the numeric serviceId (or empty string when none selected)
+const selectedService = ref<number | "">("");
 
-const requirementsData = {
-	skkni: {
-		requirements: ["Surat usulan/permohonan penetapan (pdf).", "RSKKNI-3 (word).", "Berita Acara hasil konvensi (pdf).", "Daftar hadir peserta konvensi (pdf)."],
-		workingDays: 12,
-		downloadUrl: "/docs/skkni.zip",
-	},
+const services = ref<Array<{ id: number; name: string }>>([]);
+const servicesLoading = ref(false);
 
-	skk: {
-		requirements: ["Surat usulan/permohonan penetapan (pdf).", "RSKKNI-3 (word).", "Berita Acara hasil konvensi (pdf).", "Daftar hadir peserta konvensi (pdf)."],
-		workingDays: 12,
-		downloadUrl: "/docs/skk.zip",
-	},
+onMounted(async () => {
+	servicesLoading.value = true;
+	try {
+		const svc = usePersyaratanService();
+		await svc.getAll();
+		const raw = svc.response.value as any;
+		let items: any[] = [];
+		if (Array.isArray(raw)) items = raw;
+		else items = raw?.items || raw?.data || [];
+		services.value = items.map((it) => ({ id: it.id, name: it.name }));
+	} catch (e) {
+		// ignore silently, user can still pick hardcoded options if needed
+	} finally {
+		servicesLoading.value = false;
+	}
+});
 
-	clsp: {
-		requirements: [
-			"Gambaran umum CLSP.",
-			"Visi, Misi dan Strategi.",
-			"Kondisi tenaga kerja/SDM yang akan disertifikasi oleh CLSP.",
-			"Maksud dan tujuan.",
-			"Judul/nama SKKNI yang dijadikan acuan.",
-			"Landasan hukum pendirian.",
-			"Struktur Organisasi CLSP (dilengkapi dengan SK kepengurusan).",
-			"Dukungan sarana dan fasilitas.",
-			"Alamat dan No. telepon sekretariat.",
-			"Lingkup sertifikasi (termasuk standar kompetensi yang dijadikan acuan/rujukan).",
-			"Target/jumlah yang akan disertifikasi.",
-			"Program kerja sertifikasi.",
-			"Pernyataan kesanggupan menyampaikan laporan kepada Dirjen Pembinaan Pelatihan Vokasi dan Produktivitas secara berkala.",
-			"Dukungan dari pemangku kepentingan terkait lainnya (sangat disarankan).",
-		],
-		workingDays: 5,
-		downloadUrl: "/docs/clsp.zip",
-	},
+const requirements = ref<Array<{ id: number; order: number; description: string }>>([]);
+const workingDays = ref<string | null>(null);
+const downloadUrl = ref<string | null>(null);
+const loading = ref(false);
+
+const loadForService = async (serviceId: number) => {
+	loading.value = true;
+	try {
+		const svc = usePersyaratanService();
+
+		// fetch service detail which already includes `requirements`
+		const detail = await svc.get(serviceId);
+
+		const reqs = (detail as any).requirements ?? [];
+		const items = Array.isArray(reqs) ? reqs : [];
+		// sort by order then map descriptions
+		items.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+		requirements.value = items.map((it) => ({ id: it.id, order: it.order, description: it.description }));
+
+		workingDays.value = (detail as any).workingTime ?? null;
+		downloadUrl.value = (detail as any).documentPath ?? null;
+	} catch (err) {
+		toast.error("Gagal memuat persyaratan dari server");
+		requirements.value = [];
+		workingDays.value = null;
+		downloadUrl.value = null;
+	} finally {
+		loading.value = false;
+	}
 };
 
-const requirements = computed(() => {
-	if (!selectedService.value) return [];
-	return requirementsData[selectedService.value].requirements;
-});
-
-const workingDays = computed(() => {
-	if (!selectedService.value) return null;
-	return requirementsData[selectedService.value].workingDays;
-});
-
-const downloadUrl = computed(() => {
-	if (!selectedService.value) return null;
-	return requirementsData[selectedService.value].downloadUrl;
+watch(selectedService, (val) => {
+	if (!val) return;
+	loadForService(Number(val));
 });
 
 const handleServiceChange = () => {
-	// You can add additional logic here when service changes
-	console.log("Selected service:", selectedService.value);
+	// intentionally left for potential analytics or extra logic
 };
 </script>
 
